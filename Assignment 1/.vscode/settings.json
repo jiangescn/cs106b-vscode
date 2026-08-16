@@ -1,0 +1,12 @@
+{
+  "cmake.cmakePath": "C:/Qt/Tools/CMake_64/bin/cmake.exe",
+  "cmake.useCMakePresets": "always",
+  "cmake.configurePreset": "debug-ninja",
+  "cmake.buildPreset": "debug-ninja",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/out/build/debug-ninja/compile_commands.json",
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}",
+    "${env:LOCALAPPDATA}/cs106/include",
+    "${env:CS106B_ROOT}/include"
+  ]
+}

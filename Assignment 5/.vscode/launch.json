@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "调试当前作业（Debug / Ninja）",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${command:cmake.launchTargetPath}",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [
+        {
+          "name": "PATH",
+          "value": "${env:CS106B_QT_ROOT}/bin;${env:CS106B_MINGW_ROOT}/bin;C:/Qt/Tools/mingw1310_64/bin;${env:PATH}"
+        }
+      ],
+      "externalConsole": true,
+      "MIMode": "gdb",
+      "preLaunchTask": "构建（Debug / Ninja）",
+      "avoidWindowsConsoleRedirection": true
+    }
+  ]
+}
