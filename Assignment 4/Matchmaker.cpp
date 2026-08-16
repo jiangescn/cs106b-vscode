@@ -3,12 +3,9 @@ using namespace std;
 
 bool hasPerfectMatching(const Map<string, Set<string>>& possibleLinks, Set<Pair>& matching) {
     /* TODO: Delete this comment and these remaining lines, then implement this function. */
-    if(possibleLinks.isEmpty())
-    {
-        return true;
-    }
-
-    
+    (void) possibleLinks;
+    (void) matching;
+    return false;
 }
 
 Set<Pair> maximumWeightMatching(const Map<string, Map<string, int>>& possibleLinks) {

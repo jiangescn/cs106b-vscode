@@ -46,3 +46,10 @@ if(EXISTS "${_cs106b_ninja}/ninja.exe")
     set(ENV{PATH} "${_cs106b_ninja};$ENV{PATH}")
 endif()
 set(ENV{PATH} "${_cs106b_qt}/bin;${_cs106b_mingw}/bin;$ENV{PATH}")
+
+# Export the dynamically selected Qt/MinGW paths for VS Code debugger.
+if(CMAKE_BINARY_DIR)
+    file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/cs106b-debug.env"
+        CONTENT "PATH=${_cs106b_qt}/bin;${_cs106b_mingw}/bin;$ENV{PATH}")
+endif()
+
