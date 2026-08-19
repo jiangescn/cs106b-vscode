@@ -26,6 +26,7 @@ using namespace std;
  *       *     *
  *       *     *
  *       *     *
+ * n^2
  */
 void printH(int n) {
     for (int row = 0; row < n; row++) {
@@ -66,6 +67,7 @@ void printH(int n) {
  *       *
  *       *
  *       **********
+ * n
  */
 void printC(int n) {
     for (int row = 0; row < n; row++) {
@@ -101,6 +103,7 @@ void printC(int n) {
  *          *
  *          *
  *       *******
+ * n^2
  */
 void printI(int n) {
     for (int row = 0; row < n; row++) {
@@ -139,6 +142,7 @@ void printI(int n) {
  *       *
  *       *
  *       *
+ * n^2
  */
 void printP(int n) {
     for (int row = 0; row < n; row++) {
@@ -167,6 +171,7 @@ void printP(int n) {
 }
 
 /* Prints the word "CHIP" using letters of the given size. */
+// n^2
 void printChip(int n) {
     printC(n);
     cout << endl;
@@ -187,6 +192,7 @@ void printChip(int n) {
  * the vector that sum up to exactly the target. For example, given the
  * input {0, 1, 2, 3, 4} and a target of 5, the function would return 2,
  * since there are two triples of numbers ({0, 1, 4} and {0, 2, 3})
+ * n^3
  */
 int countTriples(const Vector<int>& values, int target) {
     int result = 0;
@@ -214,11 +220,12 @@ int countTriples(const Vector<int>& values, int target) {
  * class, except that it only does one loop.
  *
  * This first version uses .remove(0) and += to do the cycling.
+ * n^2
  */
 void printCycle_v1(Vector<int>& values) {
     for (int i = 0; i < values.size(); i++) {
         int first = values[0];
-        values.remove(0); // Remove first element
+        values.remove(0); // Remove first element  -> O(n)
         values += first;  // Append that element to the back.
 
         cout << first << endl;
@@ -231,6 +238,7 @@ void printCycle_v1(Vector<int>& values) {
  * class, except that it only does one loop.
  *
  * This first version uses .subList and + to do the cycling.
+ * n^2
  */
 void printCycle_v2(Vector<int>& values) {
     for (int i = 0; i < values.size(); i++) {
@@ -243,6 +251,7 @@ void printCycle_v2(Vector<int>& values) {
 
 /* Given a queue of integers, cycles through the queue using
  * an approach similar to the one we used for the looper.
+ * n
  */
 void printCycle_v3(Queue<int>& values) {
     for (int i = 0; i < values.size(); i++) {
@@ -262,6 +271,7 @@ void printCycle_v3(Queue<int>& values) {
 /* A recursive function designed to give you practice assessing efficiency.
  * Trace out how the recursion works and use that to form a hypothesis about
  * the runtime.
+ * n
  */
 int recursivePuzzle(int n) {
     if (n == 0) {
@@ -273,6 +283,7 @@ int recursivePuzzle(int n) {
 /* A recursive function designed to give you practice assessing efficiency.
  * Trace out how the recursion works and use that to form a hypothesis about
  * the runtime.
+ * log(n)
  */
 int recursiveEnigma(int n) {
     if (n == 0) {
@@ -308,6 +319,7 @@ int recursiveEnigma(int n) {
  *
  * There are many ways to solve this problem. This first version of the function works
  * by looking at all buy/sell pairs and taking the best.
+ * n^2
  */
 int maximumSingleSellProfit_v1(const Vector<int>& values) {
     int best = 0; // Could buy and sell on the same day for $0 profit.
@@ -330,6 +342,7 @@ int maximumSingleSellProfit_v1(const Vector<int>& values) {
  * profit we can make on a smaller subarray. For (3), we take the minimum price
  * in the first half and the maximum price in the second half. The best option
  * must be one of those three.
+ * n*log(n)
  */
 int maximumSingleSellProfit_v2(const Vector<int>& values) {
     /* Base case: If the list has fewer than two elements, then you either can't

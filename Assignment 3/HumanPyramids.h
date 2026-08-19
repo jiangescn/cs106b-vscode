@@ -2,19 +2,19 @@
 #define HumanPyramids_Included
 
 /**
- * Given a human pyramid in which each person weighs exactly 160 pounds,
- * returns the weight on the back of the person at the specified row and
- * column in the human pyramid. Rows and columns are zero-indexed, so,
- * for example, weightOnBackOf(2, 0) would give the weight on the back of
- * the leftmost person in the second row from the top of the pyramid.
+ * 给定每个人恰好重 160 磅的人体金字塔，
+ * 返回指定行和列处人员背部承受的重量
+ * 人体金字塔中的列。行和列从零开始，因此，
+ * 例如，weightOnBackOf(2, 0) 会给出以下人员背上的重量：
+ * 金字塔从上往下第二行最左边的人。
  *
- * If the arguments are out of range, this function should call error() to
- * report an error.
+ * 如果参数超出范围，此函数应调用 error() 来
+ * 报告错误。
  *
- * @param row The zero-indexed row of the person in the pyramid.
- * @param col The zero-indexed column of the person in the pyramid.
- * @param pyramidHeight The height of the pyramid.
- * @return The weight on the back of that person.
+ * @param row 金字塔中该人员所在的从零开始的行。
+ * @param col 金字塔中该人员所在的从零开始的列。
+ * @param pyramidHeight 金字塔的高度。
+ * @return 该人员背后的权重。
  */
 double weightOnBackOf(int row, int col, int pyramidHeight);
 

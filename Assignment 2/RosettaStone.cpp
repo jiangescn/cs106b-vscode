@@ -1,56 +1,125 @@
 #include "RosettaStone.h"
 #include "GUI/SimpleTest.h"
+#include "priorityqueue.h"
 using namespace std;
 
-Map<string, double> kGramsIn(const string& str, int kGramLength) {
-    /* TODO: Delete this comment and the other lines here, then implement
-     * this function.
+Map<string, double> kGramsIn(const string& str, int kGramLength)
+{
+    /* TODO：删除此注释及这里的其他行，然后实现
+     * 此函数。
      */
-    (void) str;
-    (void) kGramLength;
-    return {};
+    Map<string, double> count;
+
+    if(kGramLength <= 0)
+    {
+        error("kGramLength 必须是正数");
+    }
+
+    int n = str.length();
+    for (int i = 0; i + kGramLength <= n; i++)
+    {
+        string kGram = str.substr(i, kGramLength);
+        count[kGram]++;
+    }
+
+    // cout << n << endl;
+    return count;
 }
 
 Map<string, double> normalize(const Map<string, double>& input) {
-    /* TODO: Delete this comment and the other lines here, then implement
-     * this function.
-     */
-    (void) input;
-    return {};
+    /* TODO：删除此注释及这里的其他行，然后实现此函数。*/
+    Map<string, double> result = input;
+    double tar = 0;
+    double sum = 0;
+    for (string key : input)
+    {
+        sum += input[key] * input[key];
+    }
+    tar = sqrt(sum);
+    if(tar <= 0)
+    {
+        error("被除数不能为0");
+    }
+    for (string key : result)
+    {
+        result[key] /= tar;
+    }
+
+    return result;
 }
 
 Map<string, double> topKGramsIn(const Map<string, double>& source, int numToKeep) {
-    /* TODO: Delete this comment and the other lines here, then implement
-     * this function.
+    /* TODO：删除此注释及这里的其他行，然后实现
+     * 此函数。
      */
-    (void) source;
-    (void) numToKeep;
-    return {};
+    if(numToKeep < 0)
+    {
+        error("numToKeep 必须是非负数");
+    }
+    PriorityQueue<string> pq;
+    for(string kGram : source)
+    {
+        pq.enqueue(kGram, -source[kGram]);
+    }
+
+    Map <string, double> result;
+    for (int i = 0; i < numToKeep && ! pq.isEmpty(); i++)
+    {
+        string kGram = pq.dequeue();
+        result[kGram] = source[kGram];
+    }
+
+    return result;
+
+
 }
 
 double cosineSimilarityOf(const Map<string, double>& lhs, const Map<string, double>& rhs) {
-    /* TODO: Delete this comment and the other lines here, then implement
-     * this function.
+    /* TODO：删除此注释及这里的其他行，然后实现
+     * 此函数。
      */
-    (void) lhs;
-    (void) rhs;
-    return {};
+    double ans = 0.0;
+
+    for (string key : lhs)
+    {
+        if(rhs.containsKey(key))
+        {
+            ans += lhs[key] * rhs[key];
+        }
+    }
+    return ans;
 }
 
 string guessLanguageOf(const Map<string, double>& textProfile,
                        const Set<Corpus>& corpora) {
-    /* TODO: Delete this comment and the other lines here, then implement
-     * this function.
+    /* TODO：删除此注释及这里的其他行，然后实现
+     * 此函数。
      */
-    (void) textProfile;
-    (void) corpora;
-    return "";
+    if(corpora.isEmpty())
+    {
+        error("参考库为空");
+    }
+    string ans;
+    double best = 0;
+    bool first = true;
+
+    for (Corpus corpus : corpora)
+    {
+        double seam = cosineSimilarityOf(textProfile, corpus.profile);
+        if(first || seam > best)
+        {
+            best = seam;
+            ans = corpus.name;
+            first = false;
+        }
+    }
+    return ans;
 }
 
 
 
 
-/* * * * *   Test Cases Below This Point   * * * * */
+/* * * * *   此处以下为测试用例   * * * * */
 
 
 
@@ -73,7 +142,7 @@ PROVIDED_TEST("kGramsIn works when the text length is one more than the k-gram l
 }
 
 PROVIDED_TEST("kGramsIn works when the text length is one more than the k-gram length.") {
-    /* First check: when no k-grams are repeated. */
+    /* 第一次检查：没有重复 k-gram 时。 */
     Map<string, double> expected = {
         { "the", 1 },
         { "hem", 1 }
@@ -81,7 +150,7 @@ PROVIDED_TEST("kGramsIn works when the text length is one more than the k-gram l
 
     EXPECT_EQUAL(kGramsIn("them", 3), expected);
 
-    /* Next check: when the k-grams are repeated. */
+    /* 下一项检查：k-gram 重复时。 */
     expected = {
         { "aaa", 2 }
     };
@@ -114,11 +183,11 @@ PROVIDED_TEST("kGramsIn works on a sample when k = 2.") {
 }
 
 PROVIDED_TEST("kGramsIn handles non-English strings.") {
-    /* The characters in these strings are expressed in UTF-8. This
-     * means that splitting the string into k-grams will produce some
-     * k-grams containing fragments of individual characters. See
-     * the assignment description for more details about what's
-     * going on here.
+    /* 这些字符串中的字符使用 UTF-8 表示。这
+     * 表示将字符串拆分为 k-gram 会产生一些
+     * 包含单个字符片段的 k-gram。参见
+     * 更多细节见作业说明
+     * 这里正在发生的情况。
      */
     string devanagari = "दे";
     Map<string, double> expected = {
@@ -212,14 +281,14 @@ PROVIDED_TEST("normalize works on unequal values.") {
 }
 
 PROVIDED_TEST("normalize works on huge numbers.") {
-    /* As mentioned in the assignment description, the int type
-     * is (usually) limited to a range of roughly negative two
-     * billion to roughly positive two billion. The double type,
-     * however, can handle this just fine. This test case checks
-     * to make sure that large numbers are processed correctly.
-     * If you store any intermediary calculation values in an
-     * int rather than a double, it may cause this test
-     * to fail.
+    /* 正如作业说明中提到的，int 类型
+     * （通常）限制在大约负二到
+     * 十亿到大约正二十亿。double 类型，
+     * 不过，可以很好地处理这种情况。此测试用例检查
+     * 确保能正确处理大数值。
+     * 如果将任何中间计算值存储在
+     * 使用 int 而不是 double，可能会导致此测试
+     * 失败。
      */
     Map<string, double> scores = {
         { "singleton", 1e18 }
@@ -229,9 +298,9 @@ PROVIDED_TEST("normalize works on huge numbers.") {
     EXPECT_EQUAL(result.size(), 1);
     EXPECT(result.containsKey("singleton"));
 
-    /* doubles store rounded values, so with large values being
-     * calculated we may end up with a value that's slightly
-     * wrong. These error bounds should catch this.
+    /* double 存储舍入后的值，因此当较大值被
+     * 由于计算误差，最终值可能略微
+     * 错误。这些误差边界应能捕获此情况。
      */
     EXPECT_LESS_THAN_OR_EQUAL_TO(result["singleton"], 10);
     EXPECT_GREATER_THAN_OR_EQUAL_TO(result["singleton"], 0.0);
@@ -390,8 +459,8 @@ PROVIDED_TEST("cosineSimilarityOf works with two maps with non-overlapping keys.
 }
 
 PROVIDED_TEST("cosineSimilarityOf works where keys are present in RHS but not LHS.") {
-    /* Yes, we know these aren't normalized and that we promised that we would normalize
-     * all inputs to cosineSimilarityOf. This is just for testing purposes.
+    /* 是的，我们知道这些值未归一化，而我们曾承诺会归一化
+     * cosineSimilarityOf 的所有输入。此项仅用于测试。
      */
     Map<string, double> one = {
         { "O",  1 },
@@ -410,8 +479,8 @@ PROVIDED_TEST("cosineSimilarityOf works where keys are present in RHS but not LH
 }
 
 PROVIDED_TEST("cosineSimilarityOf works where keys are present in LHS but not RHS.") {
-    /* Yes, we know these aren't normalized and that we promised that we would normalize
-     * all inputs to cosineSimilarityOf. This is just for testing purposes.
+    /* 是的，我们知道这些值未归一化，而我们曾承诺会归一化
+     * cosineSimilarityOf 的所有输入。此项仅用于测试。
      */
     Map<string, double> one = {
         { "C",  2 },
@@ -430,8 +499,8 @@ PROVIDED_TEST("cosineSimilarityOf works where keys are present in LHS but not RH
 }
 
 PROVIDED_TEST("cosineSimilarityOf works with keys missing from both sides.") {
-    /* Yes, we know these aren't normalized and that we promised that we would normalize
-     * all inputs to cosineSimilarityOf. This is just for testing purposes.
+    /* 是的，我们知道这些值未归一化，而我们曾承诺会归一化
+     * cosineSimilarityOf 的所有输入。此项仅用于测试。
      */
     Map<string, double> one = {
         { "C",  2 },

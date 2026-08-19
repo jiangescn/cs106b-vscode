@@ -6,7 +6,8 @@
 #include "GUI/MemoryDiagnostics.h"
 #include <string>
 
-class LinearProbingHashTable {
+class LinearProbingHashTable
+{
 public:
     /**
      * Constructs a new linear probing table that uses the hash function given
@@ -40,12 +41,12 @@ public:
      *
      * This function returns whether the element was inserted into the table.
      */
-    bool insert(const std::string& key);
+    bool insert(const std::string &key);
 
     /**
      * Returns whether the specified key is contained in this hash tasble.
      */
-    bool contains(const std::string& key) const;
+    bool contains(const std::string &key) const;
 
     /**
      * Removes the specified element from this hash table. If the element is not
@@ -56,7 +57,7 @@ public:
      *
      * Returns true if the element was removed and false otherwise.
      */
-    bool remove(const std::string& key);
+    bool remove(const std::string &key);
 
     /**
      * Prints out relevant information to assist with debugging.
@@ -68,15 +69,19 @@ private:
      * this type, as our tests expect it to look exactly as it does
      * right now.
      */
-    enum class SlotType {
-        EMPTY, FILLED, TOMBSTONE
+    enum class SlotType
+    {
+        EMPTY,
+        FILLED,
+        TOMBSTONE
     };
 
     /* Type representing a slot in a linear probing table. Please do not
      * modify this type, as our tests expect it to look exactly as it does
      * right now.
      */
-    struct Slot {
+    struct Slot
+    {
         std::string value;
         SlotType type;
 
@@ -87,7 +92,7 @@ private:
      * name 'elems' for the pointer to the array of elements, so please do not rename this
      * variable.
      */
-    Slot* elems = nullptr;
+    Slot *elems = nullptr;
 
     /* TODO: Add any private member variables, member functions, or member
      * types that you'd like. You're welcome to implement this type however
@@ -98,8 +103,8 @@ private:
      * TODO: Delete this comment before submitting.
      */
 
-
-
+    HashFunction<std::string> hashFn;
+    int logicalSize = 0;
 
     /* Internal shenanigans to make this play well with C++. */
     DISALLOW_COPYING_OF(LinearProbingHashTable);

@@ -5,13 +5,13 @@
 #include "set.h"
 #include <string>
 
-/* This function is provided to you and you don't need to implement it. It takes as input
- * a string, then returns a Vector<string> representing the different parts of that string
- * in the order in which they appear.
+/* 此函数已提供给你，无需实现。它接收
+ * 一个字符串，然后返回表示该字符串不同部分的 Vector<string>
+ * 按照它们出现的顺序。
  */
 Vector<std::string> tokenize(const std::string& sentence);
 
-/* You need to implement this function. See the assignment handout for details. */
+/* 你需要实现此函数。详情请参阅作业讲义。 */
 Set<std::string> allEmphasesOf(const std::string& sentence);
 
 #endif

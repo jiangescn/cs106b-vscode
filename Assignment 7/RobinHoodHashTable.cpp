@@ -1,83 +1,177 @@
 #include "RobinHoodHashTable.h"
 using namespace std;
 
-RobinHoodHashTable::RobinHoodHashTable(HashFunction<string> hashFn) {
+RobinHoodHashTable::RobinHoodHashTable(HashFunction<string> hashFn)
+{
     /* TODO: Delete this comment, then implement this function. */
-    (void) hashFn;
+    this->hashFn = hashFn;
+    logicalSize = 0;
+
+    elems = new Slot[hashFn.numSlots()];
+
+    for (int i = 0; i < hashFn.numSlots(); i++)
+    {
+        elems[i].distance = EMPTY_SLOT;
+    }
 }
 
-RobinHoodHashTable::~RobinHoodHashTable() {
+RobinHoodHashTable::~RobinHoodHashTable()
+{
     /* TODO: Delete this comment, then implement this function. */
+    delete[] elems;
 }
 
-int RobinHoodHashTable::size() const {
+int RobinHoodHashTable::size() const
+{
     /* TODO: Delete this comment and the next line, then implement this function. */
-    return -1;
+    return logicalSize;
 }
 
-bool RobinHoodHashTable::isEmpty() const {
+bool RobinHoodHashTable::isEmpty() const
+{
     /* TODO: Delete this comment and the next line, then implement this function. */
-    return false;
+    return logicalSize == 0;
 }
 
-bool RobinHoodHashTable::insert(const string& elem) {
+bool RobinHoodHashTable::insert(const string &elem)
+{
     /* TODO: Delete this comment and the next lines, then implement this function. */
-    (void) elem;
-    return false;
+    // (void) elem;
+    // return false;
+    if (contains(elem) || logicalSize == hashFn.numSlots())
+    {
+        return false;
+    }
+
+    int key = hashFn(elem);
+    Slot current;
+    current.value = elem;
+    current.distance = 0;
+
+    while (true)
+    {
+        if (elems[key].distance == EMPTY_SLOT)
+        {
+            elems[key] = current;
+            logicalSize++;
+            return true;
+        }
+
+        if (current.distance > elems[key].distance)
+        {
+            swap(current, elems[key]);
+        }
+
+        key = (key + 1) % hashFn.numSlots();
+        current.distance++;
+    }
 }
 
-bool RobinHoodHashTable::contains(const string& elem) const {
+bool RobinHoodHashTable::contains(const string &elem) const
+{
     /* TODO: Delete this comment and the next lines, then implement this function. */
-    (void) elem;
+    int key = hashFn(elem);
+    int dis = 0;
+
+    for (int i = 0; i < hashFn.numSlots(); i++)
+    {
+        if (elems[key].distance == EMPTY_SLOT)
+        {
+            return false;
+        }
+
+        if (dis > elems[key].distance)
+        {
+            return false;
+        }
+
+        if (elems[key].value == elem)
+        {
+            return true;
+        }
+
+        key = (key + 1) % hashFn.numSlots();
+        dis++;
+    }
+
     return false;
 }
 
-bool RobinHoodHashTable::remove(const string& elem) {
+bool RobinHoodHashTable::remove(const string &elem)
+{
     /* TODO: Delete this comment and the next lines, then implement this function. */
-    (void) elem;
+    // (void) elem;
+    // return false;
+    int key = hashFn(elem);
+    int dis = 0;
+
+    for (int i = 0; i < hashFn.numSlots(); i++)
+    {
+        if (elems[key].distance == EMPTY_SLOT)
+        {
+            return false;
+        }
+
+        if (dis > elems[key].distance)
+        {
+            return false;
+        }
+
+        if (elems[key].value == elem)
+        {
+            logicalSize--;
+
+            int curr = key;
+            int next = (key + 1) % hashFn.numSlots();
+            while (elems[next].distance > 0)
+            {
+                elems[curr] = elems[next];
+                elems[curr].distance--;
+
+                curr = next;
+                next = (next + 1) % hashFn.numSlots();
+            }
+
+            elems[curr].distance = EMPTY_SLOT;
+            return true;
+        }
+        key = (key + 1) % hashFn.numSlots();
+        dis++;
+    }
+
     return false;
 }
 
-void RobinHoodHashTable::printDebugInfo() const {
+void RobinHoodHashTable::printDebugInfo() const
+{
     /* TODO: Remove this comment and implement this function. */
 }
-
 
 /* * * * * * Test Cases Below This Point * * * * * */
 #include "GUI/SimpleTest.h"
 
 /* Optional: Add your own custom tests here! */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* * * * * Provided Tests Below This Point * * * * */
 #include "Demos/Utility.h"
 #include "vector.h"
 
-PROVIDED_TEST("Table is initially empty.") {
+PROVIDED_TEST("Table is initially empty.")
+{
     RobinHoodHashTable table(Hash::random(10));
 
     EXPECT_EQUAL(table.size(), 0);
     EXPECT(table.isEmpty());
 
     /* Check table internals. */
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 }
 
-PROVIDED_TEST("Can insert and look up a single value.") {
+PROVIDED_TEST("Can insert and look up a single value.")
+{
     RobinHoodHashTable table(Hash::identity(10));
 
     EXPECT(!table.contains("0"));
@@ -85,13 +179,15 @@ PROVIDED_TEST("Can insert and look up a single value.") {
     EXPECT(table.contains("0"));
 
     /* Check table internals. */
-    EXPECT_EQUAL(table.elems[0], { "0", 0 });
-    for (int i = 1; i < 10; i++) {
+    EXPECT_EQUAL(table.elems[0], {"0", 0});
+    for (int i = 1; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 }
 
-PROVIDED_TEST("Is case-sensitive.") {
+PROVIDED_TEST("Is case-sensitive.")
+{
     RobinHoodHashTable table(Hash::zero(10));
 
     EXPECT(!table.contains("a"));
@@ -99,8 +195,9 @@ PROVIDED_TEST("Is case-sensitive.") {
     EXPECT(table.insert("a"));
 
     /* Check table internals. */
-    EXPECT_EQUAL(table.elems[0], { "a", 0 });
-    for (int i = 1; i < 10; i++) {
+    EXPECT_EQUAL(table.elems[0], {"a", 0});
+    for (int i = 1; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 
@@ -108,18 +205,18 @@ PROVIDED_TEST("Is case-sensitive.") {
     EXPECT(!table.contains("A"));
 }
 
-PROVIDED_TEST("Insertions work with hash collisions.") {
+PROVIDED_TEST("Insertions work with hash collisions.")
+{
     /* Use a very, very bad hash function that maps everything to slot zero. */
     RobinHoodHashTable table(Hash::zero(10));
 
     Vector<string> toAdd = {
-        "Quokka", "Pudu", "Gerenuk", "Dikdik"
-    };
+        "Quokka", "Pudu", "Gerenuk", "Dikdik"};
     Vector<string> toNotAdd = {
-        "Springbok", "Kudu"
-    };
+        "Springbok", "Kudu"};
 
-    for (string animal: toAdd) {
+    for (string animal : toAdd)
+    {
         EXPECT(table.insert(animal));
     }
     EXPECT_EQUAL(table.size(), toAdd.size());
@@ -129,23 +226,30 @@ PROVIDED_TEST("Insertions work with hash collisions.") {
      * Quokka Pudu Gerenuk Dikdik (empty) (empty) (empty) (empty) (empty) (empty)
      *   0      1     2      3
      */
-    for (int i = 0; i < 10; i++) {
-        if (i < toAdd.size()) {
-            EXPECT_EQUAL(table.elems[i], { toAdd[i], i });
-        } else {
+    for (int i = 0; i < 10; i++)
+    {
+        if (i < toAdd.size())
+        {
+            EXPECT_EQUAL(table.elems[i], {toAdd[i], i});
+        }
+        else
+        {
             EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
         }
     }
 
-    for (string animal: toAdd) {
+    for (string animal : toAdd)
+    {
         EXPECT(table.contains(animal));
     }
-    for (string animal: toNotAdd) {
+    for (string animal : toNotAdd)
+    {
         EXPECT(!table.contains(animal));
     }
 }
 
-PROVIDED_TEST("Insertions don't displace items at same distance from home.") {
+PROVIDED_TEST("Insertions don't displace items at same distance from home.")
+{
     /* The hash function we use maps strings to their numeric values. This allows
      * us to control the contents of the hash table.
      */
@@ -160,10 +264,11 @@ PROVIDED_TEST("Insertions don't displace items at same distance from home.") {
     EXPECT(table.insert("0"));
     EXPECT(table.insert("10"));
 
-    EXPECT_EQUAL(table.elems[0], {  "0", 0 });
-    EXPECT_EQUAL(table.elems[1], { "10", 1 });
+    EXPECT_EQUAL(table.elems[0], {"0", 0});
+    EXPECT_EQUAL(table.elems[1], {"10", 1});
 
-    for (int i = 2; i < 10; i++) {
+    for (int i = 2; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 
@@ -182,13 +287,13 @@ PROVIDED_TEST("Insertions don't displace items at same distance from home.") {
     EXPECT(table.insert("4"));
     EXPECT(table.insert("5"));
 
-    EXPECT_EQUAL(table.elems[0], {  "0", 0 });
-    EXPECT_EQUAL(table.elems[1], { "10", 1 });
-    EXPECT_EQUAL(table.elems[2], {  "1", 1 });
-    EXPECT_EQUAL(table.elems[3], {  "2", 1 });
-    EXPECT_EQUAL(table.elems[4], {  "3", 1 });
-    EXPECT_EQUAL(table.elems[5], {  "4", 1 });
-    EXPECT_EQUAL(table.elems[6], {  "5", 1 });
+    EXPECT_EQUAL(table.elems[0], {"0", 0});
+    EXPECT_EQUAL(table.elems[1], {"10", 1});
+    EXPECT_EQUAL(table.elems[2], {"1", 1});
+    EXPECT_EQUAL(table.elems[3], {"2", 1});
+    EXPECT_EQUAL(table.elems[4], {"3", 1});
+    EXPECT_EQUAL(table.elems[5], {"4", 1});
+    EXPECT_EQUAL(table.elems[6], {"5", 1});
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[8].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[9].distance, RobinHoodHashTable::EMPTY_SLOT);
@@ -209,7 +314,8 @@ PROVIDED_TEST("Insertions don't displace items at same distance from home.") {
     EXPECT_EQUAL(table.size(), 7);
 }
 
-PROVIDED_TEST("Insertions displace elements that are closer to home.") {
+PROVIDED_TEST("Insertions displace elements that are closer to home.")
+{
     /* The hash function we use maps strings to their numeric values. This allows
      * us to control the contents of the hash table.
      */
@@ -225,12 +331,12 @@ PROVIDED_TEST("Insertions displace elements that are closer to home.") {
     EXPECT(table.insert("6"));
 
     EXPECT_EQUAL(table.elems[0].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[1], {  "1", 0 });
+    EXPECT_EQUAL(table.elems[1], {"1", 0});
     EXPECT_EQUAL(table.elems[2].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[3], {  "3", 0 });
+    EXPECT_EQUAL(table.elems[3], {"3", 0});
     EXPECT_EQUAL(table.elems[4].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[6], {  "6", 0 });
+    EXPECT_EQUAL(table.elems[6], {"6", 0});
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[8].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[9].distance, RobinHoodHashTable::EMPTY_SLOT);
@@ -246,12 +352,12 @@ PROVIDED_TEST("Insertions displace elements that are closer to home.") {
     EXPECT(table.insert("23"));
 
     EXPECT_EQUAL(table.elems[0].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[1], {  "1", 0 });
+    EXPECT_EQUAL(table.elems[1], {"1", 0});
     EXPECT_EQUAL(table.elems[2].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[3], {  "3", 0 });
-    EXPECT_EQUAL(table.elems[4], { "13", 1 });
-    EXPECT_EQUAL(table.elems[5], { "23", 2 });
-    EXPECT_EQUAL(table.elems[6], {  "6", 0 });
+    EXPECT_EQUAL(table.elems[3], {"3", 0});
+    EXPECT_EQUAL(table.elems[4], {"13", 1});
+    EXPECT_EQUAL(table.elems[5], {"23", 2});
+    EXPECT_EQUAL(table.elems[6], {"6", 0});
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[8].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[9].distance, RobinHoodHashTable::EMPTY_SLOT);
@@ -266,13 +372,13 @@ PROVIDED_TEST("Insertions displace elements that are closer to home.") {
     EXPECT(table.insert("5"));
 
     EXPECT_EQUAL(table.elems[0].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[1], {  "1", 0 });
+    EXPECT_EQUAL(table.elems[1], {"1", 0});
     EXPECT_EQUAL(table.elems[2].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[3], {  "3", 0 });
-    EXPECT_EQUAL(table.elems[4], { "13", 1 });
-    EXPECT_EQUAL(table.elems[5], { "23", 2 });
-    EXPECT_EQUAL(table.elems[6], {  "5", 1 });
-    EXPECT_EQUAL(table.elems[7], {  "6", 1 });
+    EXPECT_EQUAL(table.elems[3], {"3", 0});
+    EXPECT_EQUAL(table.elems[4], {"13", 1});
+    EXPECT_EQUAL(table.elems[5], {"23", 2});
+    EXPECT_EQUAL(table.elems[6], {"5", 1});
+    EXPECT_EQUAL(table.elems[7], {"6", 1});
     EXPECT_EQUAL(table.elems[8].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[9].distance, RobinHoodHashTable::EMPTY_SLOT);
 
@@ -286,13 +392,13 @@ PROVIDED_TEST("Insertions displace elements that are closer to home.") {
     EXPECT(table.insert("11"));
 
     EXPECT_EQUAL(table.elems[0].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[1], {  "1", 0 });
-    EXPECT_EQUAL(table.elems[2], { "11", 1 });
-    EXPECT_EQUAL(table.elems[3], {  "3", 0 });
-    EXPECT_EQUAL(table.elems[4], { "13", 1 });
-    EXPECT_EQUAL(table.elems[5], { "23", 2 });
-    EXPECT_EQUAL(table.elems[6], {  "5", 1 });
-    EXPECT_EQUAL(table.elems[7], {  "6", 1 });
+    EXPECT_EQUAL(table.elems[1], {"1", 0});
+    EXPECT_EQUAL(table.elems[2], {"11", 1});
+    EXPECT_EQUAL(table.elems[3], {"3", 0});
+    EXPECT_EQUAL(table.elems[4], {"13", 1});
+    EXPECT_EQUAL(table.elems[5], {"23", 2});
+    EXPECT_EQUAL(table.elems[6], {"5", 1});
+    EXPECT_EQUAL(table.elems[7], {"6", 1});
     EXPECT_EQUAL(table.elems[8].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[9].distance, RobinHoodHashTable::EMPTY_SLOT);
 
@@ -314,14 +420,14 @@ PROVIDED_TEST("Insertions displace elements that are closer to home.") {
     EXPECT(table.insert("21"));
 
     EXPECT_EQUAL(table.elems[0].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[1], {  "1", 0 });
-    EXPECT_EQUAL(table.elems[2], { "11", 1 });
-    EXPECT_EQUAL(table.elems[3], { "21", 2 });
-    EXPECT_EQUAL(table.elems[4], { "13", 1 });
-    EXPECT_EQUAL(table.elems[5], { "23", 2 });
-    EXPECT_EQUAL(table.elems[6], {  "3", 3 });
-    EXPECT_EQUAL(table.elems[7], {  "5", 2 });
-    EXPECT_EQUAL(table.elems[8], {  "6", 2 });
+    EXPECT_EQUAL(table.elems[1], {"1", 0});
+    EXPECT_EQUAL(table.elems[2], {"11", 1});
+    EXPECT_EQUAL(table.elems[3], {"21", 2});
+    EXPECT_EQUAL(table.elems[4], {"13", 1});
+    EXPECT_EQUAL(table.elems[5], {"23", 2});
+    EXPECT_EQUAL(table.elems[6], {"3", 3});
+    EXPECT_EQUAL(table.elems[7], {"5", 2});
+    EXPECT_EQUAL(table.elems[8], {"6", 2});
     EXPECT_EQUAL(table.elems[9].distance, RobinHoodHashTable::EMPTY_SLOT);
 
     EXPECT_EQUAL(table.size(), 8);
@@ -337,22 +443,22 @@ PROVIDED_TEST("Insertions displace elements that are closer to home.") {
     EXPECT(table.insert("0"));
     EXPECT(table.insert("10"));
 
-    EXPECT_EQUAL(table.elems[0], {  "0", 0 });
-    EXPECT_EQUAL(table.elems[1], { "10", 1 });
-    EXPECT_EQUAL(table.elems[2], { "11", 1 });
-    EXPECT_EQUAL(table.elems[3], { "21", 2 });
-    EXPECT_EQUAL(table.elems[4], {  "1", 3 });
-    EXPECT_EQUAL(table.elems[5], { "23", 2 });
-    EXPECT_EQUAL(table.elems[6], {  "3", 3 });
-    EXPECT_EQUAL(table.elems[7], { "13", 4 });
-    EXPECT_EQUAL(table.elems[8], {  "5", 3 });
-    EXPECT_EQUAL(table.elems[9], {  "6", 3 });
+    EXPECT_EQUAL(table.elems[0], {"0", 0});
+    EXPECT_EQUAL(table.elems[1], {"10", 1});
+    EXPECT_EQUAL(table.elems[2], {"11", 1});
+    EXPECT_EQUAL(table.elems[3], {"21", 2});
+    EXPECT_EQUAL(table.elems[4], {"1", 3});
+    EXPECT_EQUAL(table.elems[5], {"23", 2});
+    EXPECT_EQUAL(table.elems[6], {"3", 3});
+    EXPECT_EQUAL(table.elems[7], {"13", 4});
+    EXPECT_EQUAL(table.elems[8], {"5", 3});
+    EXPECT_EQUAL(table.elems[9], {"6", 3});
 
     EXPECT_EQUAL(table.size(), 10);
-
 }
 
-PROVIDED_TEST("Wraps around the end of the table.") {
+PROVIDED_TEST("Wraps around the end of the table.")
+{
     /* Everything goes in slot 7. This is a terrible hash function that's just used for
      * testing purposes.
      */
@@ -360,14 +466,13 @@ PROVIDED_TEST("Wraps around the end of the table.") {
 
     /* Insert a bunch of values. */
     Vector<string> toAdd = {
-        "H", "He", "Li", "Be", "B", "C", "N"
-    };
+        "H", "He", "Li", "Be", "B", "C", "N"};
     Vector<string> toNotAdd = {
-        "O", "F", "Ne"
-    };
+        "O", "F", "Ne"};
 
     /* Add the elements in. */
-    for (string elem: toAdd) {
+    for (string elem : toAdd)
+    {
         EXPECT(table.insert(elem));
     }
 
@@ -376,29 +481,32 @@ PROVIDED_TEST("Wraps around the end of the table.") {
      *   Be B  C  N  .  .  .  H He Li
      *   3  4  5  6           0  1  2
      */
-    EXPECT_EQUAL(table.elems[0], { "Be", 3 });
-    EXPECT_EQUAL(table.elems[1], { "B",  4 });
-    EXPECT_EQUAL(table.elems[2], { "C",  5 });
-    EXPECT_EQUAL(table.elems[3], { "N",  6 });
+    EXPECT_EQUAL(table.elems[0], {"Be", 3});
+    EXPECT_EQUAL(table.elems[1], {"B", 4});
+    EXPECT_EQUAL(table.elems[2], {"C", 5});
+    EXPECT_EQUAL(table.elems[3], {"N", 6});
     EXPECT_EQUAL(table.elems[4].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[7], { "H",  0 });
-    EXPECT_EQUAL(table.elems[8], { "He", 1 });
-    EXPECT_EQUAL(table.elems[9], { "Li", 2 });
+    EXPECT_EQUAL(table.elems[7], {"H", 0});
+    EXPECT_EQUAL(table.elems[8], {"He", 1});
+    EXPECT_EQUAL(table.elems[9], {"Li", 2});
 
     /* Confirm they're all there. */
-    for (string elem: toAdd) {
+    for (string elem : toAdd)
+    {
         EXPECT(table.contains(elem));
     }
 
     /* Confirm others aren't. */
-    for (string elem: toNotAdd) {
+    for (string elem : toNotAdd)
+    {
         EXPECT(!table.contains(elem));
     }
 }
 
-PROVIDED_TEST("Displacements wrap around the end of the table.") {
+PROVIDED_TEST("Displacements wrap around the end of the table.")
+{
     /* Each number hashes to its last digit. */
     RobinHoodHashTable table(Hash::identity(10));
 
@@ -413,16 +521,16 @@ PROVIDED_TEST("Displacements wrap around the end of the table.") {
     EXPECT(table.insert("1"));
     EXPECT_EQUAL(table.size(), 4);
 
-    EXPECT_EQUAL(table.elems[0], { "0",  0 });
-    EXPECT_EQUAL(table.elems[1], { "1",  0 });
+    EXPECT_EQUAL(table.elems[0], {"0", 0});
+    EXPECT_EQUAL(table.elems[1], {"1", 0});
     EXPECT_EQUAL(table.elems[2].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[3].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[4].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[8], { "8",  0 });
-    EXPECT_EQUAL(table.elems[9], { "9",  0 });
+    EXPECT_EQUAL(table.elems[8], {"8", 0});
+    EXPECT_EQUAL(table.elems[9], {"9", 0});
 
     /* Insert 19. This should wrap around to give the following:
      *
@@ -432,16 +540,16 @@ PROVIDED_TEST("Displacements wrap around the end of the table.") {
     EXPECT(table.insert("19"));
     EXPECT_EQUAL(table.size(), 5);
 
-    EXPECT_EQUAL(table.elems[0], { "19", 1 });
-    EXPECT_EQUAL(table.elems[1], { "0",  1 });
-    EXPECT_EQUAL(table.elems[2], { "1",  1 });
+    EXPECT_EQUAL(table.elems[0], {"19", 1});
+    EXPECT_EQUAL(table.elems[1], {"0", 1});
+    EXPECT_EQUAL(table.elems[2], {"1", 1});
     EXPECT_EQUAL(table.elems[3].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[4].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[8], { "8",  0 });
-    EXPECT_EQUAL(table.elems[9], { "9",  0 });
+    EXPECT_EQUAL(table.elems[8], {"8", 0});
+    EXPECT_EQUAL(table.elems[9], {"9", 0});
 
     /* Insert 18. This should wrap around to give the following:
      *
@@ -456,16 +564,16 @@ PROVIDED_TEST("Displacements wrap around the end of the table.") {
     EXPECT(table.insert("18"));
     EXPECT_EQUAL(table.size(), 6);
 
-    EXPECT_EQUAL(table.elems[0], { "19", 1 });
-    EXPECT_EQUAL(table.elems[1], { "9",  2 });
-    EXPECT_EQUAL(table.elems[2], { "0",  2 });
-    EXPECT_EQUAL(table.elems[3], { "1",  2 });
+    EXPECT_EQUAL(table.elems[0], {"19", 1});
+    EXPECT_EQUAL(table.elems[1], {"9", 2});
+    EXPECT_EQUAL(table.elems[2], {"0", 2});
+    EXPECT_EQUAL(table.elems[3], {"1", 2});
     EXPECT_EQUAL(table.elems[4].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[8], { "8",  0 });
-    EXPECT_EQUAL(table.elems[9], { "18", 1 });
+    EXPECT_EQUAL(table.elems[8], {"8", 0});
+    EXPECT_EQUAL(table.elems[9], {"18", 1});
 
     /* Insert 10. This should give the following:
      *
@@ -475,16 +583,16 @@ PROVIDED_TEST("Displacements wrap around the end of the table.") {
     EXPECT(table.insert("10"));
     EXPECT_EQUAL(table.size(), 7);
 
-    EXPECT_EQUAL(table.elems[0], { "19", 1 });
-    EXPECT_EQUAL(table.elems[1], {  "9", 2 });
-    EXPECT_EQUAL(table.elems[2], {  "0", 2 });
-    EXPECT_EQUAL(table.elems[3], { "10", 3 });
-    EXPECT_EQUAL(table.elems[4], {  "1", 3 });
+    EXPECT_EQUAL(table.elems[0], {"19", 1});
+    EXPECT_EQUAL(table.elems[1], {"9", 2});
+    EXPECT_EQUAL(table.elems[2], {"0", 2});
+    EXPECT_EQUAL(table.elems[3], {"10", 3});
+    EXPECT_EQUAL(table.elems[4], {"1", 3});
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[8], { "8",  0 });
-    EXPECT_EQUAL(table.elems[9], { "18", 1 });
+    EXPECT_EQUAL(table.elems[8], {"8", 0});
+    EXPECT_EQUAL(table.elems[9], {"18", 1});
 
     /* Insert 6, then 16, then 26. This does a series of wraparound displacements
      * that give rise to the following table:
@@ -499,16 +607,16 @@ PROVIDED_TEST("Displacements wrap around the end of the table.") {
     EXPECT(table.insert("16"));
     EXPECT(table.insert("26"));
 
-    EXPECT_EQUAL(table.elems[0], {  "8", 2 });
-    EXPECT_EQUAL(table.elems[1], {  "9", 2 });
-    EXPECT_EQUAL(table.elems[2], { "19", 3 });
-    EXPECT_EQUAL(table.elems[3], { "10", 3 });
-    EXPECT_EQUAL(table.elems[4], {  "0", 4 });
-    EXPECT_EQUAL(table.elems[5], {  "1", 4 });
-    EXPECT_EQUAL(table.elems[6], {  "6", 0 });
-    EXPECT_EQUAL(table.elems[7], { "16", 1 });
-    EXPECT_EQUAL(table.elems[8], { "26", 2 });
-    EXPECT_EQUAL(table.elems[9], { "18", 1 });
+    EXPECT_EQUAL(table.elems[0], {"8", 2});
+    EXPECT_EQUAL(table.elems[1], {"9", 2});
+    EXPECT_EQUAL(table.elems[2], {"19", 3});
+    EXPECT_EQUAL(table.elems[3], {"10", 3});
+    EXPECT_EQUAL(table.elems[4], {"0", 4});
+    EXPECT_EQUAL(table.elems[5], {"1", 4});
+    EXPECT_EQUAL(table.elems[6], {"6", 0});
+    EXPECT_EQUAL(table.elems[7], {"16", 1});
+    EXPECT_EQUAL(table.elems[8], {"26", 2});
+    EXPECT_EQUAL(table.elems[9], {"18", 1});
 
     EXPECT_EQUAL(table.size(), 10);
 
@@ -524,38 +632,44 @@ PROVIDED_TEST("Displacements wrap around the end of the table.") {
     EXPECT(table.contains("26"));
 }
 
-PROVIDED_TEST("Doesn't allow for duplicates.") {
+PROVIDED_TEST("Doesn't allow for duplicates.")
+{
     /* Drop everything into slot zero, just for consistency. */
     RobinHoodHashTable table(Hash::zero(10));
 
     EXPECT(table.insert("dikdik"));
     EXPECT_EQUAL(table.size(), 1);
 
-    EXPECT_EQUAL(table.elems[0], { "dikdik", 0 });
-    for (int i = 1; i < 10; i++) {
+    EXPECT_EQUAL(table.elems[0], {"dikdik", 0});
+    for (int i = 1; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 
     /* Insert the same value more times than the table can hold. */
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 100; i++)
+    {
         EXPECT(!table.insert("dikdik"));
         EXPECT_EQUAL(table.size(), 1);
 
-        EXPECT_EQUAL(table.elems[0], { "dikdik", 0 });
-        for (int i = 1; i < 10; i++) {
+        EXPECT_EQUAL(table.elems[0], {"dikdik", 0});
+        for (int i = 1; i < 10; i++)
+        {
             EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
         }
     }
 }
 
-PROVIDED_TEST("Handles inserting the empty string.") {
+PROVIDED_TEST("Handles inserting the empty string.")
+{
     RobinHoodHashTable table(Hash::zero(10));
 
     EXPECT(!table.contains(""));
     EXPECT(table.insert(""));
 
-    EXPECT_EQUAL(table.elems[0], { "", 0 });
-    for (int i = 1; i < 10; i++) {
+    EXPECT_EQUAL(table.elems[0], {"", 0});
+    for (int i = 1; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 
@@ -563,58 +677,68 @@ PROVIDED_TEST("Handles inserting the empty string.") {
     EXPECT_EQUAL(table.size(), 1);
 }
 
-PROVIDED_TEST("Lookups work even if the table is full.") {
+PROVIDED_TEST("Lookups work even if the table is full.")
+{
     /* Dump everything in bucket 7. This is a terrible hash function, but it's
      * useful for testing.
      */
     RobinHoodHashTable table(Hash::constant(10, 7));
 
     /* Fill the table. */
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         EXPECT(table.insert(to_string(i)));
     }
     EXPECT_EQUAL(table.size(), 10);
 
     /* Validate the table. */
-    for (int i = 0; i < 10; i++) {
-        EXPECT_EQUAL(table.elems[(i + 7) % 10], { to_string(i), i });
+    for (int i = 0; i < 10; i++)
+    {
+        EXPECT_EQUAL(table.elems[(i + 7) % 10], {to_string(i), i});
     }
 
     /* Search for all present items. */
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         EXPECT(table.contains(to_string(i)));
     }
 
     /* Confirm elements that aren't there don't show up. Watch out! This edge
      * case might cause your code to hang if you haven't anticipated it.
      */
-    for (int i = 10; i < 20; i++) {
+    for (int i = 10; i < 20; i++)
+    {
         EXPECT(!table.contains(to_string(i)));
     }
 }
 
-PROVIDED_TEST("Won't insert elements if table is full.") {
+PROVIDED_TEST("Won't insert elements if table is full.")
+{
     /* Terrible hash function that places everything in slot seven. */
     RobinHoodHashTable table(Hash::constant(10, 7));
 
     /* Load the table. */
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         EXPECT(table.insert(to_string(i))); // Should succeed
     }
     EXPECT_EQUAL(table.size(), 10);
 
     /* Validate the table. */
-    for (int i = 0; i < 10; i++) {
-        EXPECT_EQUAL(table.elems[(i + 7) % 10], { to_string(i), i });
+    for (int i = 0; i < 10; i++)
+    {
+        EXPECT_EQUAL(table.elems[(i + 7) % 10], {to_string(i), i});
     }
 
     /* All these operations should fail. */
-    for (int i = 10; i < 20; i++) {
+    for (int i = 10; i < 20; i++)
+    {
         EXPECT(!table.insert(to_string(i)));
     }
 }
 
-PROVIDED_TEST("Stress Test: Searches cut off early (should take at most five seconds)") {
+PROVIDED_TEST("Stress Test: Searches cut off early (should take at most five seconds)")
+{
     /* We're going to fill an enormous table with a bunch of blocks of elements, then try doing
      * lookups. Using regular linear probing, this will grind to a halt because the table is
      * full. Using Robin Hood hashing, this should cut off extremely quickly.
@@ -628,15 +752,17 @@ PROVIDED_TEST("Stress Test: Searches cut off early (should take at most five sec
      * further from home than the element at the block start.
      */
     const int kElemsPerBlock = 5;
-    const int kNumBlocks     = 50000;
-    const int kNumElems      = kNumBlocks * kElemsPerBlock;
+    const int kNumBlocks = 50000;
+    const int kNumElems = kNumBlocks * kElemsPerBlock;
 
     /* Each element's position is given by its value, mod the table size. */
     RobinHoodHashTable table(Hash::identity(kNumElems));
 
     /* Fill the table with many blocks of values with the same hash code. */
-    for (int block = 0; block < kNumBlocks; block++) {
-        for (int elem = 0; elem < kElemsPerBlock; elem++) {
+    for (int block = 0; block < kNumBlocks; block++)
+    {
+        for (int elem = 0; elem < kElemsPerBlock; elem++)
+        {
             /* These values should all drop into a position given by the block index
              * times the number of blocks per element.
              */
@@ -647,19 +773,23 @@ PROVIDED_TEST("Stress Test: Searches cut off early (should take at most five sec
     EXPECT_EQUAL(table.size(), kNumElems);
 
     /* Validate the table. */
-    for (int block = 0; block < kNumBlocks; block++) {
-        for (int elem = 0; elem < kElemsPerBlock; elem++) {
+    for (int block = 0; block < kNumBlocks; block++)
+    {
+        for (int elem = 0; elem < kElemsPerBlock; elem++)
+        {
             int value = block * kElemsPerBlock + elem * kNumElems;
             int index = block * kElemsPerBlock + elem;
-            EXPECT_EQUAL(table.elems[index], { to_string(value), elem });
+            EXPECT_EQUAL(table.elems[index], {to_string(value), elem});
         }
     }
 
     /* Confirm each element is present. This should be very quick since each block is
      * small and all elements within a block are close to the block start.
      */
-    for (int block = 0; block < kNumBlocks; block++) {
-        for (int elem = 0; elem < kElemsPerBlock; elem++) {
+    for (int block = 0; block < kNumBlocks; block++)
+    {
+        for (int elem = 0; elem < kElemsPerBlock; elem++)
+        {
             /* These values should all drop into a position given by the block index
              * times the number of blocks per element.
              */
@@ -678,8 +808,10 @@ PROVIDED_TEST("Stress Test: Searches cut off early (should take at most five sec
      * positions in the table once for each position in the table, which will take
      * far too long to finish in any reasonable amount of time.
      */
-    for (int block = 0; block < kNumBlocks; block++) {
-        for (int elem = kElemsPerBlock; elem < 2 * kElemsPerBlock; elem++) {
+    for (int block = 0; block < kNumBlocks; block++)
+    {
+        for (int elem = kElemsPerBlock; elem < 2 * kElemsPerBlock; elem++)
+        {
             /* These values should all drop into a position given by the block index
              * times the number of blocks per element.
              */
@@ -689,15 +821,19 @@ PROVIDED_TEST("Stress Test: Searches cut off early (should take at most five sec
     }
 }
 
-PROVIDED_TEST("Stress Test: Handles pure insertion of elements (should take at most three seconds).") {
+PROVIDED_TEST("Stress Test: Handles pure insertion of elements (should take at most three seconds).")
+{
     const int kNumTrials = 50; // Do this lots of times to smoke out any errors that might be lurking.
-    for (int trial = 0; trial < kNumTrials; trial++) {
+    for (int trial = 0; trial < kNumTrials; trial++)
+    {
         RobinHoodHashTable table(Hash::random(100));
 
         const int kNumElems = 75;
-        for (int i = 0; i < kNumElems; i++) {
+        for (int i = 0; i < kNumElems; i++)
+        {
             /* Confirm only the proper elements exist at this point. */
-            for (int j = 0; j < kNumElems; j++) {
+            for (int j = 0; j < kNumElems; j++)
+            {
                 EXPECT_EQUAL(table.contains(to_string(j)), j < i);
             }
 
@@ -708,7 +844,8 @@ PROVIDED_TEST("Stress Test: Handles pure insertion of elements (should take at m
     }
 }
 
-PROVIDED_TEST("Stress Test: Inserts/searches work in expected time O(1) (should take at most three seconds).") {
+PROVIDED_TEST("Stress Test: Inserts/searches work in expected time O(1) (should take at most three seconds).")
+{
     /* Huge number of slots. */
     const int kNumSlots = 1000000;
 
@@ -718,28 +855,33 @@ PROVIDED_TEST("Stress Test: Inserts/searches work in expected time O(1) (should 
     /* Search the table for lots of elements. This should quick, since
      * the table is empty.
      */
-    for (int i = 0; i < kNumSlots; i++) {
+    for (int i = 0; i < kNumSlots; i++)
+    {
         EXPECT(!table.contains(to_string(i)));
     }
 
     /* Insert a lot elements. */
     const int kLotsOfElems = 100000; // 10% load factor - quite small!
-    for (int i = 0; i < kLotsOfElems; i++) {
+    for (int i = 0; i < kLotsOfElems; i++)
+    {
         EXPECT(table.insert(to_string(i)));
     }
-    for (int i = 0; i < kLotsOfElems; i++) {
+    for (int i = 0; i < kLotsOfElems; i++)
+    {
         EXPECT(table.contains(to_string(i)));
     }
 
     /* Confirm other elements aren't there. These false lookups should still be fast
      * due to the low load factor.
      */
-    for (int i = kLotsOfElems; i < 2 * kLotsOfElems; i++) {
+    for (int i = kLotsOfElems; i < 2 * kLotsOfElems; i++)
+    {
         EXPECT(!table.contains(to_string(i)));
     }
 }
 
-PROVIDED_TEST("Can insert and remove a single element.") {
+PROVIDED_TEST("Can insert and remove a single element.")
+{
     /* Everything hashes to zero. This is a *terrible* hash function and is used
      * purely for testing.
      */
@@ -751,8 +893,9 @@ PROVIDED_TEST("Can insert and remove a single element.") {
     EXPECT(!table.isEmpty());
 
     /* Validate table internals. */
-    EXPECT_EQUAL(table.elems[0], { "137", 0 });
-    for (int i = 1; i < 10; i++) {
+    EXPECT_EQUAL(table.elems[0], {"137", 0});
+    for (int i = 1; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 
@@ -762,14 +905,16 @@ PROVIDED_TEST("Can insert and remove a single element.") {
     EXPECT(table.isEmpty());
 
     /* Validate table internals. */
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 
     EXPECT(!table.contains("137"));
 }
 
-PROVIDED_TEST("Handles removing the empty string.") {
+PROVIDED_TEST("Handles removing the empty string.")
+{
     RobinHoodHashTable table(Hash::zero(10));
 
     /* We shouldn't be able to remove the empty string from the table;
@@ -782,8 +927,9 @@ PROVIDED_TEST("Handles removing the empty string.") {
     EXPECT(table.insert(""));
 
     /* Validate table internals. */
-    EXPECT_EQUAL(table.elems[0], { "", 0 });
-    for (int i = 1; i < 10; i++) {
+    EXPECT_EQUAL(table.elems[0], {"", 0});
+    for (int i = 1; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 
@@ -796,14 +942,16 @@ PROVIDED_TEST("Handles removing the empty string.") {
     EXPECT(!table.contains(""));
 
     /* Validate table internals. */
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 
     EXPECT(!table.remove(""));
 }
 
-PROVIDED_TEST("Doesn't backward-shift elements from their homes.") {
+PROVIDED_TEST("Doesn't backward-shift elements from their homes.")
+{
     /* Each element hashes to its own numeric value, modded by the table size. */
     RobinHoodHashTable table(Hash::identity(10));
 
@@ -824,14 +972,14 @@ PROVIDED_TEST("Doesn't backward-shift elements from their homes.") {
 
     /* Validate table internals. */
     EXPECT_EQUAL(table.elems[0].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[1], {  "1", 0 });
-    EXPECT_EQUAL(table.elems[2], { "11", 1 });
-    EXPECT_EQUAL(table.elems[3], { "21", 2 });
-    EXPECT_EQUAL(table.elems[4], { "31", 3 });
-    EXPECT_EQUAL(table.elems[5], {  "5", 0 });
-    EXPECT_EQUAL(table.elems[6], { "15", 1 });
-    EXPECT_EQUAL(table.elems[7], { "25", 2 });
-    EXPECT_EQUAL(table.elems[8], { "35", 3 });
+    EXPECT_EQUAL(table.elems[1], {"1", 0});
+    EXPECT_EQUAL(table.elems[2], {"11", 1});
+    EXPECT_EQUAL(table.elems[3], {"21", 2});
+    EXPECT_EQUAL(table.elems[4], {"31", 3});
+    EXPECT_EQUAL(table.elems[5], {"5", 0});
+    EXPECT_EQUAL(table.elems[6], {"15", 1});
+    EXPECT_EQUAL(table.elems[7], {"25", 2});
+    EXPECT_EQUAL(table.elems[8], {"35", 3});
     EXPECT_EQUAL(table.elems[9].distance, RobinHoodHashTable::EMPTY_SLOT);
 
     /* Remove 11. This should backward-shift delete to give
@@ -843,14 +991,14 @@ PROVIDED_TEST("Doesn't backward-shift elements from their homes.") {
     EXPECT_EQUAL(table.size(), 7);
 
     EXPECT_EQUAL(table.elems[0].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[1], {  "1", 0 });
-    EXPECT_EQUAL(table.elems[2], { "21", 1 });
-    EXPECT_EQUAL(table.elems[3], { "31", 2 });
+    EXPECT_EQUAL(table.elems[1], {"1", 0});
+    EXPECT_EQUAL(table.elems[2], {"21", 1});
+    EXPECT_EQUAL(table.elems[3], {"31", 2});
     EXPECT_EQUAL(table.elems[4].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[5], {  "5", 0 });
-    EXPECT_EQUAL(table.elems[6], { "15", 1 });
-    EXPECT_EQUAL(table.elems[7], { "25", 2 });
-    EXPECT_EQUAL(table.elems[8], { "35", 3 });
+    EXPECT_EQUAL(table.elems[5], {"5", 0});
+    EXPECT_EQUAL(table.elems[6], {"15", 1});
+    EXPECT_EQUAL(table.elems[7], {"25", 2});
+    EXPECT_EQUAL(table.elems[8], {"35", 3});
     EXPECT_EQUAL(table.elems[9].distance, RobinHoodHashTable::EMPTY_SLOT);
 
     EXPECT(table.contains("1"));
@@ -863,7 +1011,8 @@ PROVIDED_TEST("Doesn't backward-shift elements from their homes.") {
     EXPECT(table.contains("35"));
 }
 
-PROVIDED_TEST("Deletes around the end of the table.") {
+PROVIDED_TEST("Deletes around the end of the table.")
+{
     /* Everything goes in slot 8. */
     RobinHoodHashTable table(Hash::constant(10, 8));
 
@@ -872,21 +1021,22 @@ PROVIDED_TEST("Deletes around the end of the table.") {
      * 2  3  4  .  .  .  .  .  0  1
      * 2  3  4                 0  1
      */
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++)
+    {
         EXPECT(table.insert(to_string(i)));
     }
     EXPECT_EQUAL(table.size(), 5);
 
-    EXPECT_EQUAL(table.elems[0], {  "2", 2 });
-    EXPECT_EQUAL(table.elems[1], {  "3", 3 });
-    EXPECT_EQUAL(table.elems[2], {  "4", 4 });
+    EXPECT_EQUAL(table.elems[0], {"2", 2});
+    EXPECT_EQUAL(table.elems[1], {"3", 3});
+    EXPECT_EQUAL(table.elems[2], {"4", 4});
     EXPECT_EQUAL(table.elems[3].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[4].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[8], {  "0", 0 });
-    EXPECT_EQUAL(table.elems[9], {  "1", 1 });
+    EXPECT_EQUAL(table.elems[8], {"0", 0});
+    EXPECT_EQUAL(table.elems[9], {"1", 1});
 
     /* Remove 0. This should shift everything back like this:
      *
@@ -896,16 +1046,16 @@ PROVIDED_TEST("Deletes around the end of the table.") {
     EXPECT(table.remove("0"));
     EXPECT_EQUAL(table.size(), 4);
 
-    EXPECT_EQUAL(table.elems[0], {  "3", 2 });
-    EXPECT_EQUAL(table.elems[1], {  "4", 3 });
+    EXPECT_EQUAL(table.elems[0], {"3", 2});
+    EXPECT_EQUAL(table.elems[1], {"4", 3});
     EXPECT_EQUAL(table.elems[2].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[3].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[4].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[8], {  "1", 0 });
-    EXPECT_EQUAL(table.elems[9], {  "2", 1 });
+    EXPECT_EQUAL(table.elems[8], {"1", 0});
+    EXPECT_EQUAL(table.elems[9], {"2", 1});
 
     /* Remove 1. This should shift everything back like this:
      *
@@ -915,7 +1065,7 @@ PROVIDED_TEST("Deletes around the end of the table.") {
     EXPECT(table.remove("1"));
     EXPECT_EQUAL(table.size(), 3);
 
-    EXPECT_EQUAL(table.elems[0], {  "4", 2 });
+    EXPECT_EQUAL(table.elems[0], {"4", 2});
     EXPECT_EQUAL(table.elems[1].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[2].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[3].distance, RobinHoodHashTable::EMPTY_SLOT);
@@ -923,8 +1073,8 @@ PROVIDED_TEST("Deletes around the end of the table.") {
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[8], {  "2", 0 });
-    EXPECT_EQUAL(table.elems[9], {  "3", 1 });
+    EXPECT_EQUAL(table.elems[8], {"2", 0});
+    EXPECT_EQUAL(table.elems[9], {"3", 1});
 
     /* Remove 2. This should shift everything back like this:
      *
@@ -942,8 +1092,8 @@ PROVIDED_TEST("Deletes around the end of the table.") {
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[8], {  "3", 0 });
-    EXPECT_EQUAL(table.elems[9], {  "4", 1 });
+    EXPECT_EQUAL(table.elems[8], {"3", 0});
+    EXPECT_EQUAL(table.elems[9], {"4", 1});
 
     /* Remove 3. This should shift everything back like this:
      *
@@ -961,25 +1111,28 @@ PROVIDED_TEST("Deletes around the end of the table.") {
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
-    EXPECT_EQUAL(table.elems[8], {  "4", 0 });
+    EXPECT_EQUAL(table.elems[8], {"4", 0});
     EXPECT_EQUAL(table.elems[9].distance, RobinHoodHashTable::EMPTY_SLOT);
 
     /* Remove 4. This should leave the table empty. */
     EXPECT(table.remove("4"));
     EXPECT_EQUAL(table.size(), 0);
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 }
 
-PROVIDED_TEST("Removing non-existent elements has no effect.") {
+PROVIDED_TEST("Removing non-existent elements has no effect.")
+{
     /* Drop everything in bucket 0, which is a terrible choice of hash function but
      * which makes testing a lot easier.
      */
     RobinHoodHashTable table(Hash::zero(10));
 
     /* Fill the table. */
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++)
+    {
         EXPECT(table.insert(to_string(i)));
     }
     EXPECT_EQUAL(table.size(), 5);
@@ -990,11 +1143,11 @@ PROVIDED_TEST("Removing non-existent elements has no effect.") {
      * 0 1 2 3 4
      */
     EXPECT_EQUAL(table.size(), 5);
-    EXPECT_EQUAL(table.elems[0], {  "0", 0 });
-    EXPECT_EQUAL(table.elems[1], {  "1", 1 });
-    EXPECT_EQUAL(table.elems[2], {  "2", 2 });
-    EXPECT_EQUAL(table.elems[3], {  "3", 3 });
-    EXPECT_EQUAL(table.elems[4], {  "4", 4 });
+    EXPECT_EQUAL(table.elems[0], {"0", 0});
+    EXPECT_EQUAL(table.elems[1], {"1", 1});
+    EXPECT_EQUAL(table.elems[2], {"2", 2});
+    EXPECT_EQUAL(table.elems[3], {"3", 3});
+    EXPECT_EQUAL(table.elems[4], {"4", 4});
     EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
     EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
@@ -1002,16 +1155,17 @@ PROVIDED_TEST("Removing non-existent elements has no effect.") {
     EXPECT_EQUAL(table.elems[9].distance, RobinHoodHashTable::EMPTY_SLOT);
 
     /* Try removing things that don't exist. */
-    for (int i = 5; i < 30; i++) {
+    for (int i = 5; i < 30; i++)
+    {
         EXPECT(!table.remove(to_string(i)));
 
         /* Confirm that the table is unchanged. */
         EXPECT_EQUAL(table.size(), 5);
-        EXPECT_EQUAL(table.elems[0], {  "0", 0 });
-        EXPECT_EQUAL(table.elems[1], {  "1", 1 });
-        EXPECT_EQUAL(table.elems[2], {  "2", 2 });
-        EXPECT_EQUAL(table.elems[3], {  "3", 3 });
-        EXPECT_EQUAL(table.elems[4], {  "4", 4 });
+        EXPECT_EQUAL(table.elems[0], {"0", 0});
+        EXPECT_EQUAL(table.elems[1], {"1", 1});
+        EXPECT_EQUAL(table.elems[2], {"2", 2});
+        EXPECT_EQUAL(table.elems[3], {"3", 3});
+        EXPECT_EQUAL(table.elems[4], {"4", 4});
         EXPECT_EQUAL(table.elems[5].distance, RobinHoodHashTable::EMPTY_SLOT);
         EXPECT_EQUAL(table.elems[6].distance, RobinHoodHashTable::EMPTY_SLOT);
         EXPECT_EQUAL(table.elems[7].distance, RobinHoodHashTable::EMPTY_SLOT);
@@ -1020,14 +1174,16 @@ PROVIDED_TEST("Removing non-existent elements has no effect.") {
     }
 }
 
-PROVIDED_TEST("Can remove from a full table.") {
+PROVIDED_TEST("Can remove from a full table.")
+{
     /* Drop everything in bucket 7, which is a terrible choice of hash function but
      * which makes testing a lot easier.
      */
     RobinHoodHashTable table(Hash::constant(10, 7));
 
     /* Fill the table. */
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         EXPECT(table.insert(to_string(i)));
     }
     EXPECT_EQUAL(table.size(), 10);
@@ -1038,66 +1194,74 @@ PROVIDED_TEST("Can remove from a full table.") {
      * 3  4  5  6  7  8  9  0  1  2
      */
     EXPECT_EQUAL(table.size(), 10);
-    EXPECT_EQUAL(table.elems[0], {  "3", 3 });
-    EXPECT_EQUAL(table.elems[1], {  "4", 4 });
-    EXPECT_EQUAL(table.elems[2], {  "5", 5 });
-    EXPECT_EQUAL(table.elems[3], {  "6", 6 });
-    EXPECT_EQUAL(table.elems[4], {  "7", 7 });
-    EXPECT_EQUAL(table.elems[5], {  "8", 8 });
-    EXPECT_EQUAL(table.elems[6], {  "9", 9 });
-    EXPECT_EQUAL(table.elems[7], {  "0", 0 });
-    EXPECT_EQUAL(table.elems[8], {  "1", 1 });
-    EXPECT_EQUAL(table.elems[9], {  "2", 2 });
+    EXPECT_EQUAL(table.elems[0], {"3", 3});
+    EXPECT_EQUAL(table.elems[1], {"4", 4});
+    EXPECT_EQUAL(table.elems[2], {"5", 5});
+    EXPECT_EQUAL(table.elems[3], {"6", 6});
+    EXPECT_EQUAL(table.elems[4], {"7", 7});
+    EXPECT_EQUAL(table.elems[5], {"8", 8});
+    EXPECT_EQUAL(table.elems[6], {"9", 9});
+    EXPECT_EQUAL(table.elems[7], {"0", 0});
+    EXPECT_EQUAL(table.elems[8], {"1", 1});
+    EXPECT_EQUAL(table.elems[9], {"2", 2});
 
     /* Try removing some elements that aren't present. This may hang if your implementation
      * of remove wasn't anticipating this case.
      */
-    for (int i = 10; i < 20; i++) {
+    for (int i = 10; i < 20; i++)
+    {
         EXPECT(!table.remove(to_string(i)));
 
         /* Make sure the table is unchanged. */
         EXPECT_EQUAL(table.size(), 10);
 
-        EXPECT_EQUAL(table.elems[0], {  "3", 3 });
-        EXPECT_EQUAL(table.elems[1], {  "4", 4 });
-        EXPECT_EQUAL(table.elems[2], {  "5", 5 });
-        EXPECT_EQUAL(table.elems[3], {  "6", 6 });
-        EXPECT_EQUAL(table.elems[4], {  "7", 7 });
-        EXPECT_EQUAL(table.elems[5], {  "8", 8 });
-        EXPECT_EQUAL(table.elems[6], {  "9", 9 });
-        EXPECT_EQUAL(table.elems[7], {  "0", 0 });
-        EXPECT_EQUAL(table.elems[8], {  "1", 1 });
-        EXPECT_EQUAL(table.elems[9], {  "2", 2 });
+        EXPECT_EQUAL(table.elems[0], {"3", 3});
+        EXPECT_EQUAL(table.elems[1], {"4", 4});
+        EXPECT_EQUAL(table.elems[2], {"5", 5});
+        EXPECT_EQUAL(table.elems[3], {"6", 6});
+        EXPECT_EQUAL(table.elems[4], {"7", 7});
+        EXPECT_EQUAL(table.elems[5], {"8", 8});
+        EXPECT_EQUAL(table.elems[6], {"9", 9});
+        EXPECT_EQUAL(table.elems[7], {"0", 0});
+        EXPECT_EQUAL(table.elems[8], {"1", 1});
+        EXPECT_EQUAL(table.elems[9], {"2", 2});
     }
 
     /* Now, do the actual removals. */
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         EXPECT(table.remove(to_string(i)));
     }
 
     EXPECT(table.isEmpty());
     EXPECT_EQUAL(table.size(), 0);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         EXPECT_EQUAL(table.elems[i].distance, RobinHoodHashTable::EMPTY_SLOT);
     }
 }
 
-PROVIDED_TEST("Stress Test: Handles large numbers of removals (should take under a second).") {
+PROVIDED_TEST("Stress Test: Handles large numbers of removals (should take under a second).")
+{
     const int kNumTrials = 50; // Do this lots of times to smoke out any errors that might be lurking.
-    for (int trial = 0; trial < kNumTrials; trial++) {
+    for (int trial = 0; trial < kNumTrials; trial++)
+    {
         RobinHoodHashTable table(Hash::random(100));
 
         const int kNumElems = 75;
-        for (int i = 0; i < kNumElems; i++) {
+        for (int i = 0; i < kNumElems; i++)
+        {
             table.insert(to_string(i));
         }
 
         EXPECT_EQUAL(table.size(), kNumElems);
 
-        for (int i = 0; i < kNumElems; i++) {
+        for (int i = 0; i < kNumElems; i++)
+        {
             /* Confirm only the proper elements exist at this point. */
-            for (int j = 0; j < kNumElems; j++) {
+            for (int j = 0; j < kNumElems; j++)
+            {
                 EXPECT_EQUAL(table.contains(to_string(j)), j >= i);
             }
 
@@ -1107,7 +1271,8 @@ PROVIDED_TEST("Stress Test: Handles large numbers of removals (should take under
     }
 }
 
-PROVIDED_TEST("Stress Test: Inserts/searches/deletes work in expected time O(1).") {
+PROVIDED_TEST("Stress Test: Inserts/searches/deletes work in expected time O(1).")
+{
     /* Huge number of slots. */
     const int kNumSlots = 1000000;
 
@@ -1116,19 +1281,22 @@ PROVIDED_TEST("Stress Test: Inserts/searches/deletes work in expected time O(1).
 
     /* Insert a lot elements. */
     const int kLotsOfElems = 100000; // 10% load factor - quite small!
-    for (int i = 0; i < kLotsOfElems; i++) {
+    for (int i = 0; i < kLotsOfElems; i++)
+    {
         EXPECT(table.insert(to_string(i)));
     }
 
     /* Remove the middle half of them. */
-    for (int i = kLotsOfElems / 4; i < 3 * kLotsOfElems / 4; i++) {
+    for (int i = kLotsOfElems / 4; i < 3 * kLotsOfElems / 4; i++)
+    {
         EXPECT(table.remove(to_string(i)));
     }
 
     /* Search for lots of elements and confirm the ones are supposed to be there
      * are indeed there.
      */
-    for (int i = 0; i < kLotsOfElems; i++) {
+    for (int i = 0; i < kLotsOfElems; i++)
+    {
         EXPECT_EQUAL(table.contains(to_string(i)), bool(i < kLotsOfElems / 4 || i >= 3 * kLotsOfElems / 4));
     }
 }
@@ -1136,13 +1304,15 @@ PROVIDED_TEST("Stress Test: Inserts/searches/deletes work in expected time O(1).
 #include "filelib.h"
 #include "Demos/Timer.h"
 #include <fstream>
-PROVIDED_TEST("Stress Test: Handles large workflows with little free space (should take at most five seconds)") {
-    SHOW_ERROR("Stress test is disabled by default. To run it, comment out line " + to_string(__LINE__) + " of " + getTail(__FILE__) + ".");
+PROVIDED_TEST("Stress Test: Handles large workflows with little free space (should take at most five seconds)")
+{
+    // SHOW_ERROR("Stress test is disabled by default. To run it, comment out line " + to_string(__LINE__) + " of " + getTail(__FILE__) + ".");
 
     Vector<string> english;
     ifstream input("res/EnglishWords.txt");
 
-    for (string word; getline(input, word); ) {
+    for (string word; getline(input, word);)
+    {
         english += word;
     }
 
@@ -1152,19 +1322,22 @@ PROVIDED_TEST("Stress Test: Handles large workflows with little free space (shou
     RobinHoodHashTable table(Hash::consistentRandom(english.size() / 0.99));
 
     /* Insert everything. */
-    for (const string& word: english) {
+    for (const string &word : english)
+    {
         EXPECT(table.insert(word));
     }
     EXPECT_EQUAL(table.size(), english.size());
 
     /* Make sure everything is there, and that the upper-case versions aren't. */
-    for (const string& word: english) {
+    for (const string &word : english)
+    {
         EXPECT(table.contains(word));
         EXPECT(!table.contains(toUpperCase(word)));
     }
 
     /* Remove everything, plus some things not there.. */
-    for (const string& word: english) {
+    for (const string &word : english)
+    {
         EXPECT(table.remove(word));
         EXPECT(!table.contains(word));
         EXPECT(!table.remove(toUpperCase(word)));

@@ -1,37 +1,114 @@
 #include "HeapPQueue.h"
 using namespace std;
 
-HeapPQueue::HeapPQueue() {
+HeapPQueue::HeapPQueue()
+{
     /* TODO: Implement this. */
+    allocatedSize = INITIAL_SIZE;
+    logicalSize = 0;
+    elems = new DataPoint[allocatedSize];
 }
 
-HeapPQueue::~HeapPQueue() {
+HeapPQueue::~HeapPQueue()
+{
     /* TODO: Implement this. */
+    delete[] elems;
 }
 
-int HeapPQueue::size() const {
+int HeapPQueue::size() const
+{
     /* TODO: Delete the next line and implement this. */
-    return 0;
+    return logicalSize;
 }
 
-bool HeapPQueue::isEmpty() const {
+bool HeapPQueue::isEmpty() const
+{
     /* TODO: Delete the next line and implement this. */
-    return 0;
+    return (logicalSize == 0);
 }
 
-void HeapPQueue::enqueue(const DataPoint& data) {
+void HeapPQueue::enqueue(const DataPoint &data)
+{
     /* TODO: Delete the next line and implement this. */
-    (void) data;
+    if(logicalSize + 1 >= allocatedSize)
+    {
+        // error("HeapPQueue is full");
+        int newSize = allocatedSize * 2;
+        DataPoint* newElemes = new DataPoint[newSize];
+
+        for (int i = 1; i <= logicalSize; i++)
+        {
+            newElemes[i] = elems[i];
+        }
+
+        delete[] elems;
+
+        elems = newElemes;
+        allocatedSize = newSize;
+    }
+
+    logicalSize++;
+    elems[logicalSize] = data;
+    
+    int idx = logicalSize;
+    while(idx > 1)
+    {
+        int par = idx / 2;
+        if(elems[idx].weight >= elems[par].weight)
+        {
+            break;
+        }
+
+        swap(elems[par], elems[idx]);
+        idx = par;
+    }
 }
 
-DataPoint HeapPQueue::peek() const {
+DataPoint HeapPQueue::peek() const
+{
     /* TODO: Delete the next line and implement this. */
-    return {};
+    if(isEmpty())
+    {
+        error("HeapQqueue is empty");
+    }
+
+    return elems[1];
 }
 
-DataPoint HeapPQueue::dequeue() {
+DataPoint HeapPQueue::dequeue()
+{
     /* TODO: Delete the next line and implement this. */
-    return {};
+    if(isEmpty())
+    {
+        error("HeapQqueue is empty");
+    }
+
+    DataPoint result = elems[1];
+    elems[1] = elems[logicalSize];
+    logicalSize--;
+
+    int idx = 1;
+    while(idx * 2 <= logicalSize)
+    {
+        int l = idx * 2;
+        int r = idx * 2 + 1;
+
+        int child = l;
+        if(r <= logicalSize && elems[r].weight < elems[l].weight)
+        {
+            child = r;
+        }
+
+        if(elems[idx].weight <= elems[child].weight)
+        {
+            break;
+        }
+
+        swap(elems[idx], elems[child]);
+        idx = child;
+    }
+
+    return result;
 }
 
 /* This function is purely for you to use during testing. You can have it do whatever
@@ -44,38 +121,27 @@ DataPoint HeapPQueue::dequeue() {
  * TODO: Delete this comment and replace it with one describing what this function
  * actually does.
  */
-void HeapPQueue::printDebugInfo() {
+void HeapPQueue::printDebugInfo()
+{
     /* TODO: Delete this comment and (optionally) put debugging code here. */
 }
-
 
 /* * * * * * Test Cases Below This Point * * * * * */
 
 /* TODO: Add your own custom tests here! */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* * * * * Provided Tests Below This Point * * * * */
 
-PROVIDED_TEST("Newly-created heap is empty.") {
+PROVIDED_TEST("Newly-created heap is empty.")
+{
     HeapPQueue pq;
 
     EXPECT(pq.isEmpty());
     EXPECT(pq.size() == 0);
 }
 
-PROVIDED_TEST("Newly-created heap allocates an array of the right size.") {
+PROVIDED_TEST("Newly-created heap allocates an array of the right size.")
+{
     HeapPQueue pq;
 
     EXPECT_NOT_EQUAL(pq.elems, nullptr);
@@ -83,9 +149,10 @@ PROVIDED_TEST("Newly-created heap allocates an array of the right size.") {
     EXPECT_EQUAL(pq.allocatedSize, HeapPQueue::INITIAL_SIZE);
 }
 
-PROVIDED_TEST("Can enqueue a single element.") {
+PROVIDED_TEST("Can enqueue a single element.")
+{
     HeapPQueue pq;
-    pq.enqueue({ "First", 137.0 });
+    pq.enqueue({"First", 137.0});
 
     /* Check other fields for validity. */
     EXPECT_EQUAL(pq.size(), 1);
@@ -98,7 +165,7 @@ PROVIDED_TEST("Can enqueue a single element.") {
      * Slot one in the priority queue should contain the newly-added
      * element.
      */
-    EXPECT_EQUAL(pq.elems[1], { "First", 137.0 });
+    EXPECT_EQUAL(pq.elems[1], {"First", 137.0});
 
     /* There is still space left, so no array growth
      * should have been necessary.
@@ -106,12 +173,15 @@ PROVIDED_TEST("Can enqueue a single element.") {
     EXPECT_EQUAL(pq.allocatedSize, HeapPQueue::INITIAL_SIZE);
 }
 
-PROVIDED_TEST("Enqueues two elements in sorted order.") {
+
+
+PROVIDED_TEST("Enqueues two elements in sorted order.")
+{
     HeapPQueue pq;
 
     /* Add these items in this order. */
-    DataPoint one = { "First",  1.6108 };
-    DataPoint two = { "Second", 2.7182 };
+    DataPoint one = {"First", 1.6108};
+    DataPoint two = {"Second", 2.7182};
 
     pq.enqueue(one);
 
@@ -136,12 +206,13 @@ PROVIDED_TEST("Enqueues two elements in sorted order.") {
     EXPECT_EQUAL(pq.allocatedSize, HeapPQueue::INITIAL_SIZE);
 }
 
-PROVIDED_TEST("Enqueues two elements in reverse sorted order.") {
+PROVIDED_TEST("Enqueues two elements in reverse sorted order.")
+{
     HeapPQueue pq;
 
     /* Add these items in this order. */
-    DataPoint one = { "First",  3.1415 };
-    DataPoint two = { "Second", 2.7182 };
+    DataPoint one = {"First", 3.1415};
+    DataPoint two = {"Second", 2.7182};
 
     pq.enqueue(one);
 
@@ -166,13 +237,14 @@ PROVIDED_TEST("Enqueues two elements in reverse sorted order.") {
     EXPECT_EQUAL(pq.allocatedSize, HeapPQueue::INITIAL_SIZE);
 }
 
-PROVIDED_TEST("Enqueues three elements in sorted order.") {
+PROVIDED_TEST("Enqueues three elements in sorted order.")
+{
     HeapPQueue pq;
 
     /* Add these items in this order. */
-    DataPoint one   = { "First",  1.6108 };
-    DataPoint two   = { "Second", 2.7182 };
-    DataPoint three = { "Third",  3.1415 };
+    DataPoint one = {"First", 1.6108};
+    DataPoint two = {"Second", 2.7182};
+    DataPoint three = {"Third", 3.1415};
 
     pq.enqueue(one);
     pq.enqueue(two);
@@ -193,13 +265,14 @@ PROVIDED_TEST("Enqueues three elements in sorted order.") {
     EXPECT_EQUAL(pq.allocatedSize, HeapPQueue::INITIAL_SIZE);
 }
 
-PROVIDED_TEST("Enqueues three elements in reverse-sorted order.") {
+PROVIDED_TEST("Enqueues three elements in reverse-sorted order.")
+{
     HeapPQueue pq;
 
     /* Add these items in this order. */
-    DataPoint one   = { "First",  161 };
-    DataPoint two   = { "Second", 106 };
-    DataPoint three = { "Third",  103 };
+    DataPoint one = {"First", 161};
+    DataPoint two = {"Second", 106};
+    DataPoint three = {"Third", 103};
 
     pq.enqueue(one);
     pq.enqueue(two);   // Bubbles up
@@ -223,15 +296,16 @@ PROVIDED_TEST("Enqueues three elements in reverse-sorted order.") {
     EXPECT_EQUAL(pq.allocatedSize, HeapPQueue::INITIAL_SIZE);
 }
 
-PROVIDED_TEST("Enqueues five elements in sorted order.") {
+PROVIDED_TEST("Enqueues five elements in sorted order.")
+{
     HeapPQueue pq;
 
     /* Add these items in this order. */
-    DataPoint one   = { "First",  1 };
-    DataPoint two   = { "Second", 2 };
-    DataPoint three = { "Third",  3 };
-    DataPoint four  = { "Four",   4 };
-    DataPoint five  = { "Five",   5 };
+    DataPoint one = {"First", 1};
+    DataPoint two = {"Second", 2};
+    DataPoint three = {"Third", 3};
+    DataPoint four = {"Four", 4};
+    DataPoint five = {"Five", 5};
 
     pq.enqueue(one);
     pq.enqueue(two);
@@ -258,15 +332,16 @@ PROVIDED_TEST("Enqueues five elements in sorted order.") {
     EXPECT_EQUAL(pq.allocatedSize, HeapPQueue::INITIAL_SIZE);
 }
 
-PROVIDED_TEST("Enqueues five elements in reverse-sorted order.") {
+PROVIDED_TEST("Enqueues five elements in reverse-sorted order.")
+{
     HeapPQueue pq;
 
     /* Add these items in this order. */
-    DataPoint one   = { "First",  10 };
-    DataPoint two   = { "Second", 9 };
-    DataPoint three = { "Third",  8 };
-    DataPoint four  = { "Four",   7 };
-    DataPoint five  = { "Five",   6 };
+    DataPoint one = {"First", 10};
+    DataPoint two = {"Second", 9};
+    DataPoint three = {"Third", 8};
+    DataPoint four = {"Four", 7};
+    DataPoint five = {"Five", 6};
 
     pq.enqueue(one);
     pq.enqueue(two);
@@ -294,16 +369,17 @@ PROVIDED_TEST("Enqueues five elements in reverse-sorted order.") {
     EXPECT_EQUAL(pq.allocatedSize, HeapPQueue::INITIAL_SIZE);
 }
 
-PROVIDED_TEST("Enqueue grows the internal array.") {
+PROVIDED_TEST("Enqueue grows the internal array.")
+{
     HeapPQueue pq;
 
     /* Add these items in this order. */
-    DataPoint one   = { "First",  1 };
-    DataPoint two   = { "Second", 2 };
-    DataPoint three = { "Third",  3 };
-    DataPoint four  = { "Four",   4 };
-    DataPoint five  = { "Five",   5 };
-    DataPoint six   = { "Six",    6 };
+    DataPoint one = {"First", 1};
+    DataPoint two = {"Second", 2};
+    DataPoint three = {"Third", 3};
+    DataPoint four = {"Four", 4};
+    DataPoint five = {"Five", 5};
+    DataPoint six = {"Six", 6};
 
     pq.enqueue(one);
     pq.enqueue(two);
@@ -312,7 +388,7 @@ PROVIDED_TEST("Enqueue grows the internal array.") {
     pq.enqueue(five);
 
     /* This next one triggers the grow step. */
-    auto* oldArray = pq.elems;
+    auto *oldArray = pq.elems;
     pq.enqueue(six);
 
     /* The array should have been replaced with a new one. */
@@ -334,27 +410,31 @@ PROVIDED_TEST("Enqueue grows the internal array.") {
     EXPECT_EQUAL(pq.size(), 6);
 }
 
-PROVIDED_TEST("Enqueue repeatedly grows the internal array.") {
+PROVIDED_TEST("Enqueue repeatedly grows the internal array.")
+{
     HeapPQueue pq;
 
     /* Insert lots of values in sorted order. No bubble-up should
      * ever occur in this process, but the internal array will
      * need to grow many times.
      */
-    for (int i = 1; i < 100; i++) {
-        pq.enqueue({ to_string(i), double(i) });
+    for (int i = 1; i < 100; i++)
+    {
+        pq.enqueue({to_string(i), double(i)});
         EXPECT_EQUAL(pq.size(), i);
 
         /* Confirm the array contents exactly match what they
          * should be - namely, the elements in sorted order.
          */
-        for (int j = 1; j <= i; j++) {
-            EXPECT_EQUAL(pq.elems[j], { to_string(j), double(j) });
+        for (int j = 1; j <= i; j++)
+        {
+            EXPECT_EQUAL(pq.elems[j], {to_string(j), double(j)});
         }
     }
 }
 
-PROVIDED_TEST("Enqueue can bubble up long chains.") {
+PROVIDED_TEST("Enqueue can bubble up long chains.")
+{
     HeapPQueue pq;
 
     /* First, create this heap:
@@ -370,13 +450,15 @@ PROVIDED_TEST("Enqueue can bubble up long chains.") {
      * This can be done by inserting all these elements in order
      * into the priority queue.
      */
-    for (int i = 2; i <= 15; i++) {
-        pq.enqueue({ to_string(i), double(i) });
+    for (int i = 2; i <= 15; i++)
+    {
+        pq.enqueue({to_string(i), double(i)});
     }
 
     /* Confirm the queue is set up correctly. */
-    for (int i = 2; i <= 15; i++) {
-        EXPECT_EQUAL(pq.elems[i - 1], { to_string(i), double(i) });
+    for (int i = 2; i <= 15; i++)
+    {
+        EXPECT_EQUAL(pq.elems[i - 1], {to_string(i), double(i)});
     }
     EXPECT_EQUAL(pq.size(), 14);
 
@@ -391,30 +473,31 @@ PROVIDED_TEST("Enqueue can bubble up long chains.") {
      *       / \  / \   / \   / \
      *      9 10 11 12 13 14 15  8
      */
-    pq.enqueue({ "1", 1 });
+    pq.enqueue({"1", 1});
     EXPECT_EQUAL(pq.size(), 15);
 
-    EXPECT_EQUAL(pq.elems[1],   {  "1",  1 });
-    EXPECT_EQUAL(pq.elems[2],   {  "3",  3 });
-    EXPECT_EQUAL(pq.elems[3],   {  "2",  2 });
-    EXPECT_EQUAL(pq.elems[4],   {  "5",  5 });
-    EXPECT_EQUAL(pq.elems[5],   {  "6",  6 });
-    EXPECT_EQUAL(pq.elems[6],   {  "7",  7 });
-    EXPECT_EQUAL(pq.elems[7],   {  "4",  4 });
-    EXPECT_EQUAL(pq.elems[8],   {  "9",  9 });
-    EXPECT_EQUAL(pq.elems[9],   { "10", 10 });
-    EXPECT_EQUAL(pq.elems[10],  { "11", 11 });
-    EXPECT_EQUAL(pq.elems[11],  { "12", 12 });
-    EXPECT_EQUAL(pq.elems[12],  { "13", 13 });
-    EXPECT_EQUAL(pq.elems[13],  { "14", 14 });
-    EXPECT_EQUAL(pq.elems[14],  { "15", 15 });
-    EXPECT_EQUAL(pq.elems[15],  {  "8",  8 });
+    EXPECT_EQUAL(pq.elems[1], {"1", 1});
+    EXPECT_EQUAL(pq.elems[2], {"3", 3});
+    EXPECT_EQUAL(pq.elems[3], {"2", 2});
+    EXPECT_EQUAL(pq.elems[4], {"5", 5});
+    EXPECT_EQUAL(pq.elems[5], {"6", 6});
+    EXPECT_EQUAL(pq.elems[6], {"7", 7});
+    EXPECT_EQUAL(pq.elems[7], {"4", 4});
+    EXPECT_EQUAL(pq.elems[8], {"9", 9});
+    EXPECT_EQUAL(pq.elems[9], {"10", 10});
+    EXPECT_EQUAL(pq.elems[10], {"11", 11});
+    EXPECT_EQUAL(pq.elems[11], {"12", 12});
+    EXPECT_EQUAL(pq.elems[12], {"13", 13});
+    EXPECT_EQUAL(pq.elems[13], {"14", 14});
+    EXPECT_EQUAL(pq.elems[14], {"15", 15});
+    EXPECT_EQUAL(pq.elems[15], {"8", 8});
 }
 
-PROVIDED_TEST("Can enqueue and dequeue a single element.") {
+PROVIDED_TEST("Can enqueue and dequeue a single element.")
+{
     HeapPQueue pq;
 
-    DataPoint first = { "First", 137 };
+    DataPoint first = {"First", 137};
     pq.enqueue(first);
 
     EXPECT_EQUAL(pq.dequeue(), first);
@@ -422,13 +505,15 @@ PROVIDED_TEST("Can enqueue and dequeue a single element.") {
     EXPECT(pq.isEmpty());
 }
 
-PROVIDED_TEST("Reports an error when dequeuing from an empty queue.") {
+PROVIDED_TEST("Reports an error when dequeuing from an empty queue.")
+{
     HeapPQueue pq;
 
     EXPECT_ERROR(pq.dequeue());
 }
 
-PROVIDED_TEST("Can bubble down to the left.") {
+PROVIDED_TEST("Can bubble down to the left.")
+{
     HeapPQueue pq;
 
     /* Form this heap:
@@ -439,10 +524,10 @@ PROVIDED_TEST("Can bubble down to the left.") {
      *      /
      *     4
      */
-    DataPoint v1 = { "First",  1 };
-    DataPoint v2 = { "Second", 2 };
-    DataPoint v3 = { "Third",  3 };
-    DataPoint v4 = { "Fourth", 4 };
+    DataPoint v1 = {"First", 1};
+    DataPoint v2 = {"Second", 2};
+    DataPoint v3 = {"Third", 3};
+    DataPoint v4 = {"Fourth", 4};
 
     pq.enqueue(v1);
     pq.enqueue(v2);
@@ -467,14 +552,15 @@ PROVIDED_TEST("Can bubble down to the left.") {
      *        / \
      *       4   3
      */
-     EXPECT_EQUAL(pq.dequeue(), v1);
-     EXPECT_EQUAL(pq.size(), 3);
-     EXPECT_EQUAL(pq.elems[1], v2);
-     EXPECT_EQUAL(pq.elems[2], v4);
-     EXPECT_EQUAL(pq.elems[3], v3);
+    EXPECT_EQUAL(pq.dequeue(), v1);
+    EXPECT_EQUAL(pq.size(), 3);
+    EXPECT_EQUAL(pq.elems[1], v2);
+    EXPECT_EQUAL(pq.elems[2], v4);
+    EXPECT_EQUAL(pq.elems[3], v3);
 }
 
-PROVIDED_TEST("Can bubble down to the right.") {
+PROVIDED_TEST("Can bubble down to the right.")
+{
     HeapPQueue pq;
 
     /* Form this heap:
@@ -485,10 +571,10 @@ PROVIDED_TEST("Can bubble down to the right.") {
      *      /
      *     4
      */
-    DataPoint v1 = { "First",  1 };
-    DataPoint v2 = { "Second", 2 };
-    DataPoint v3 = { "Third",  3 };
-    DataPoint v4 = { "Fourth", 4 };
+    DataPoint v1 = {"First", 1};
+    DataPoint v2 = {"Second", 2};
+    DataPoint v3 = {"Third", 3};
+    DataPoint v4 = {"Fourth", 4};
 
     pq.enqueue(v1);
     pq.enqueue(v3);
@@ -513,14 +599,15 @@ PROVIDED_TEST("Can bubble down to the right.") {
      *        / \
      *       3   4
      */
-     EXPECT_EQUAL(pq.dequeue(), v1);
-     EXPECT_EQUAL(pq.size(), 3);
-     EXPECT_EQUAL(pq.elems[1], v2);
-     EXPECT_EQUAL(pq.elems[2], v3);
-     EXPECT_EQUAL(pq.elems[3], v4);
+    EXPECT_EQUAL(pq.dequeue(), v1);
+    EXPECT_EQUAL(pq.size(), 3);
+    EXPECT_EQUAL(pq.elems[1], v2);
+    EXPECT_EQUAL(pq.elems[2], v3);
+    EXPECT_EQUAL(pq.elems[3], v4);
 }
 
-PROVIDED_TEST("Can bubble down two layers.") {
+PROVIDED_TEST("Can bubble down two layers.")
+{
     HeapPQueue pq;
 
     /* Form this heap:
@@ -531,12 +618,12 @@ PROVIDED_TEST("Can bubble down two layers.") {
      *      / \     /
      *     4   5   6
      */
-    DataPoint v1 = { "First",  1 };
-    DataPoint v2 = { "Second", 2 };
-    DataPoint v3 = { "Third",  3 };
-    DataPoint v4 = { "Fourth", 4 };
-    DataPoint v5 = { "Fifth",  5 };
-    DataPoint v6 = { "Sixth",  6 };
+    DataPoint v1 = {"First", 1};
+    DataPoint v2 = {"Second", 2};
+    DataPoint v3 = {"Third", 3};
+    DataPoint v4 = {"Fourth", 4};
+    DataPoint v5 = {"Fifth", 5};
+    DataPoint v6 = {"Sixth", 6};
 
     pq.enqueue(v1);
     pq.enqueue(v2);
@@ -577,16 +664,17 @@ PROVIDED_TEST("Can bubble down two layers.") {
      *      / \
      *     6   5
      */
-     EXPECT_EQUAL(pq.dequeue(), v1);
-     EXPECT_EQUAL(pq.size(), 5);
-     EXPECT_EQUAL(pq.elems[1], v2);
-     EXPECT_EQUAL(pq.elems[2], v4);
-     EXPECT_EQUAL(pq.elems[3], v3);
-     EXPECT_EQUAL(pq.elems[4], v6);
-     EXPECT_EQUAL(pq.elems[5], v5);
+    EXPECT_EQUAL(pq.dequeue(), v1);
+    EXPECT_EQUAL(pq.size(), 5);
+    EXPECT_EQUAL(pq.elems[1], v2);
+    EXPECT_EQUAL(pq.elems[2], v4);
+    EXPECT_EQUAL(pq.elems[3], v3);
+    EXPECT_EQUAL(pq.elems[4], v6);
+    EXPECT_EQUAL(pq.elems[5], v5);
 }
 
-PROVIDED_TEST("Can bubble down when only one child exists.") {
+PROVIDED_TEST("Can bubble down when only one child exists.")
+{
     HeapPQueue pq;
 
     /* Form this heap:
@@ -597,11 +685,11 @@ PROVIDED_TEST("Can bubble down when only one child exists.") {
      *      / \
      *     4   5
      */
-    DataPoint v1 = { "First",  1 };
-    DataPoint v2 = { "Second", 2 };
-    DataPoint v3 = { "Third",  3 };
-    DataPoint v4 = { "Fourth", 4 };
-    DataPoint v5 = { "Fifth",  5 };
+    DataPoint v1 = {"First", 1};
+    DataPoint v2 = {"Second", 2};
+    DataPoint v3 = {"Third", 3};
+    DataPoint v4 = {"Fourth", 4};
+    DataPoint v5 = {"Fifth", 5};
 
     pq.enqueue(v1);
     pq.enqueue(v2);
@@ -640,17 +728,18 @@ PROVIDED_TEST("Can bubble down when only one child exists.") {
      *      /
      *     5
      */
-     EXPECT_EQUAL(pq.dequeue(), v1);
-     EXPECT_EQUAL(pq.size(), 4);
-     EXPECT_EQUAL(pq.elems[1], v2);
-     EXPECT_EQUAL(pq.elems[2], v4);
-     EXPECT_EQUAL(pq.elems[3], v3);
-     EXPECT_EQUAL(pq.elems[4], v5);
+    EXPECT_EQUAL(pq.dequeue(), v1);
+    EXPECT_EQUAL(pq.size(), 4);
+    EXPECT_EQUAL(pq.elems[1], v2);
+    EXPECT_EQUAL(pq.elems[2], v4);
+    EXPECT_EQUAL(pq.elems[3], v3);
+    EXPECT_EQUAL(pq.elems[4], v5);
 }
 
-PROVIDED_TEST("Enqueue / dequeue single element") {
+PROVIDED_TEST("Enqueue / dequeue single element")
+{
     HeapPQueue pq;
-    DataPoint point = { "enqueue me!", 4 };
+    DataPoint point = {"enqueue me!", 4};
     pq.enqueue(point);
     EXPECT_EQUAL(pq.size(), 1);
     EXPECT_EQUAL(pq.isEmpty(), false);
@@ -668,7 +757,8 @@ PROVIDED_TEST("Enqueue / dequeue single element") {
     EXPECT_EQUAL(pq.isEmpty(), true);
 }
 
-PROVIDED_TEST("Dequeue / peek on empty heap throws error") {
+PROVIDED_TEST("Dequeue / peek on empty heap throws error")
+{
     HeapPQueue pq;
 
     EXPECT(pq.isEmpty());
@@ -676,80 +766,95 @@ PROVIDED_TEST("Dequeue / peek on empty heap throws error") {
     EXPECT_ERROR(pq.peek());
 }
 
-PROVIDED_TEST("Enqueue elements in sorted order.") {
+PROVIDED_TEST("Enqueue elements in sorted order.")
+{
     HeapPQueue pq;
-    for (int i = 0; i < 10; i++) {
-        pq.enqueue({ "elem" + to_string(i), double(i) });
+    for (int i = 0; i < 10; i++)
+    {
+        pq.enqueue({"elem" + to_string(i), double(i)});
     }
 
     EXPECT_EQUAL(pq.size(), 10);
-    for (int i = 0; i < 10; i++) {
-        EXPECT_EQUAL(pq.peek(), { "elem" + to_string(i), double(i) });
-        EXPECT_EQUAL(pq.dequeue(), { "elem" + to_string(i), double(i) });
+    for (int i = 0; i < 10; i++)
+    {
+        EXPECT_EQUAL(pq.peek(), {"elem" + to_string(i), double(i)});
+        EXPECT_EQUAL(pq.dequeue(), {"elem" + to_string(i), double(i)});
     }
     EXPECT_EQUAL(pq.size(), 0);
     EXPECT_EQUAL(pq.isEmpty(), true);
 }
 
-PROVIDED_TEST("Enqueue many elements in sorted order.") {
+PROVIDED_TEST("Enqueue many elements in sorted order.")
+{
     HeapPQueue pq;
-    for (int i = 0; i < 10000; i++) {
-        pq.enqueue({ "elem" + to_string(i), double(i) });
+    for (int i = 0; i < 10000; i++)
+    {
+        pq.enqueue({"elem" + to_string(i), double(i)});
     }
 
     EXPECT_EQUAL(pq.size(), 10000);
-    for (int i = 0; i < 10000; i++) {
-        EXPECT_EQUAL(pq.peek(), { "elem" + to_string(i), double(i) });
-        EXPECT_EQUAL(pq.dequeue(), { "elem" + to_string(i), double(i) });
+    for (int i = 0; i < 10000; i++)
+    {
+        EXPECT_EQUAL(pq.peek(), {"elem" + to_string(i), double(i)});
+        EXPECT_EQUAL(pq.dequeue(), {"elem" + to_string(i), double(i)});
     }
     EXPECT_EQUAL(pq.size(), 0);
     EXPECT_EQUAL(pq.isEmpty(), true);
 }
 
-PROVIDED_TEST("Enqueue elements in reverse-sorted order.") {
+PROVIDED_TEST("Enqueue elements in reverse-sorted order.")
+{
     HeapPQueue pq;
-    for (int i = 10; i >= 0; i--) {
-        pq.enqueue({ "elem" + to_string(i), double(i) });
+    for (int i = 10; i >= 0; i--)
+    {
+        pq.enqueue({"elem" + to_string(i), double(i)});
     }
 
     EXPECT_EQUAL(pq.size(), 11);
-    for (int i = 0; i <= 10; i++) {
-        EXPECT_EQUAL(pq.peek(), { "elem" + to_string(i), double(i) });
-        EXPECT_EQUAL(pq.dequeue(), { "elem" + to_string(i), double(i) });
+    for (int i = 0; i <= 10; i++)
+    {
+        EXPECT_EQUAL(pq.peek(), {"elem" + to_string(i), double(i)});
+        EXPECT_EQUAL(pq.dequeue(), {"elem" + to_string(i), double(i)});
     }
     EXPECT_EQUAL(pq.size(), 0);
     EXPECT_EQUAL(pq.isEmpty(), true);
 }
 
-PROVIDED_TEST("Enqueue many elements in reverse-sorted order.") {
+PROVIDED_TEST("Enqueue many elements in reverse-sorted order.")
+{
     HeapPQueue pq;
-    for (int i = 10000; i >= 0; i--) {
-        pq.enqueue({ "elem" + to_string(i), double(i) });
+    for (int i = 10000; i >= 0; i--)
+    {
+        pq.enqueue({"elem" + to_string(i), double(i)});
     }
 
     EXPECT_EQUAL(pq.size(), 10001);
-    for (int i = 0; i <= 10000; i++) {
+    for (int i = 0; i <= 10000; i++)
+    {
         auto removed = pq.dequeue();
         DataPoint expected = {
-            "elem" + to_string(i), double(i)
-        };
+            "elem" + to_string(i), double(i)};
         EXPECT_EQUAL(removed, expected);
     }
     EXPECT_EQUAL(pq.size(), 0);
     EXPECT_EQUAL(pq.isEmpty(), true);
 }
 
-PROVIDED_TEST("Insert ascending and descending sequences.") {
+PROVIDED_TEST("Insert ascending and descending sequences.")
+{
     HeapPQueue pq;
-    for (int i = 0; i < 20; i++) {
-        pq.enqueue({ "a" + to_string(i), 2 * double(i) });
+    for (int i = 0; i < 20; i++)
+    {
+        pq.enqueue({"a" + to_string(i), 2 * double(i)});
     }
-    for (int i = 19; i >= 0; i--) {
-        pq.enqueue({ "b" + to_string(i), 2 * double(i) + 1 });
+    for (int i = 19; i >= 0; i--)
+    {
+        pq.enqueue({"b" + to_string(i), 2 * double(i) + 1});
     }
 
     EXPECT_EQUAL(pq.size(), 40);
-    for (int i = 0; i < 40; i++) {
+    for (int i = 0; i < 40; i++)
+    {
         auto removed = pq.dequeue();
         EXPECT_EQUAL(removed.weight, i);
     }
@@ -757,17 +862,21 @@ PROVIDED_TEST("Insert ascending and descending sequences.") {
     EXPECT_EQUAL(pq.isEmpty(), true);
 }
 
-PROVIDED_TEST("Insert large ascending and descending sequences.") {
+PROVIDED_TEST("Insert large ascending and descending sequences.")
+{
     HeapPQueue pq;
-    for (int i = 0; i < 20000; i++) {
-        pq.enqueue({ "a" + to_string(i), 2 * double(i) });
+    for (int i = 0; i < 20000; i++)
+    {
+        pq.enqueue({"a" + to_string(i), 2 * double(i)});
     }
-    for (int i = 19999; i >= 0; i--) {
-        pq.enqueue({ "b" + to_string(i), 2 * double(i) + 1 });
+    for (int i = 19999; i >= 0; i--)
+    {
+        pq.enqueue({"b" + to_string(i), 2 * double(i) + 1});
     }
 
     EXPECT_EQUAL(pq.size(), 40000);
-    for (int i = 0; i < 40000; i++) {
+    for (int i = 0; i < 40000; i++)
+    {
         auto removed = pq.dequeue();
         EXPECT_EQUAL(removed.weight, i);
     }
@@ -775,49 +884,55 @@ PROVIDED_TEST("Insert large ascending and descending sequences.") {
     EXPECT_EQUAL(pq.isEmpty(), true);
 }
 
-PROVIDED_TEST("Insert random permutation.") {
+PROVIDED_TEST("Insert random permutation.")
+{
     Vector<DataPoint> sequence = {
-        { "A", 0 },
-        { "D", 3 },
-        { "F", 5 },
-        { "G", 6 },
-        { "C", 2 },
-        { "H", 7 },
-        { "I", 8 },
-        { "B", 1 },
-        { "E", 4 },
-        { "J", 9 },
+        {"A", 0},
+        {"D", 3},
+        {"F", 5},
+        {"G", 6},
+        {"C", 2},
+        {"H", 7},
+        {"I", 8},
+        {"B", 1},
+        {"E", 4},
+        {"J", 9},
     };
 
     HeapPQueue pq;
-    for (DataPoint elem: sequence) {
+    for (DataPoint elem : sequence)
+    {
         pq.enqueue(elem);
     }
 
     EXPECT_EQUAL(pq.size(), sequence.size());
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++)
+    {
         auto removed = pq.dequeue();
         DataPoint expected = {
-            string(1, 'A' + i), double(i)
-        };
+            string(1, 'A' + i), double(i)};
         EXPECT_EQUAL(removed, expected);
     }
     EXPECT_EQUAL(pq.size(), 0);
     EXPECT_EQUAL(pq.isEmpty(), true);
 }
 
-PROVIDED_TEST("Insert duplicate elements.") {
+PROVIDED_TEST("Insert duplicate elements.")
+{
     HeapPQueue pq;
-    for (int i = 0; i < 20; i++) {
-        pq.enqueue({ "a" + to_string(i), double(i) });
+    for (int i = 0; i < 20; i++)
+    {
+        pq.enqueue({"a" + to_string(i), double(i)});
     }
-    for (int i = 19; i >= 0; i--) {
-        pq.enqueue({ "b" + to_string(i), double(i) });
+    for (int i = 19; i >= 0; i--)
+    {
+        pq.enqueue({"b" + to_string(i), double(i)});
     }
 
     EXPECT_EQUAL(pq.size(), 40);
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 20; i++)
+    {
         auto one = pq.dequeue();
         auto two = pq.dequeue();
 
@@ -828,17 +943,21 @@ PROVIDED_TEST("Insert duplicate elements.") {
     EXPECT_EQUAL(pq.isEmpty(), true);
 }
 
-PROVIDED_TEST("Insert many duplicate elements.") {
+PROVIDED_TEST("Insert many duplicate elements.")
+{
     HeapPQueue pq;
-    for (int i = 0; i < 20000; i++) {
-        pq.enqueue({ "a" + to_string(i), double(i) });
+    for (int i = 0; i < 20000; i++)
+    {
+        pq.enqueue({"a" + to_string(i), double(i)});
     }
-    for (int i = 19999; i >= 0; i--) {
-        pq.enqueue({ "b" + to_string(i), double(i) });
+    for (int i = 19999; i >= 0; i--)
+    {
+        pq.enqueue({"b" + to_string(i), double(i)});
     }
 
     EXPECT_EQUAL(pq.size(), 40000);
-    for (int i = 0; i < 20000; i++) {
+    for (int i = 0; i < 20000; i++)
+    {
         auto one = pq.dequeue();
         auto two = pq.dequeue();
 
@@ -849,114 +968,140 @@ PROVIDED_TEST("Insert many duplicate elements.") {
     EXPECT_EQUAL(pq.isEmpty(), true);
 }
 
-PROVIDED_TEST("Handles data points with empty string name.") {
+PROVIDED_TEST("Handles data points with empty string name.")
+{
     HeapPQueue pq;
-    for (int i = 0; i < 10; i++) {
-        pq.enqueue({ "" , double(i) });
+    for (int i = 0; i < 10; i++)
+    {
+        pq.enqueue({"", double(i)});
     }
     EXPECT_EQUAL(pq.size(), 10);
-    for (int i = 0; i < 10; i++) {
-        EXPECT_EQUAL(pq.dequeue(), { "", double(i) });
+    for (int i = 0; i < 10; i++)
+    {
+        EXPECT_EQUAL(pq.dequeue(), {"", double(i)});
     }
     EXPECT_EQUAL(pq.size(), 0);
     EXPECT(pq.isEmpty());
 }
 
-PROVIDED_TEST("Handles many data points with empty string name.") {
+PROVIDED_TEST("Handles many data points with empty string name.")
+{
     HeapPQueue pq;
-    for (int i = 0; i < 10000; i++) {
-        pq.enqueue({ "" , double(i) });
+    for (int i = 0; i < 10000; i++)
+    {
+        pq.enqueue({"", double(i)});
     }
     EXPECT_EQUAL(pq.size(), 10000);
-    for (int i = 0; i < 10000; i++) {
-        EXPECT_EQUAL(pq.dequeue(), { "", double(i) });
+    for (int i = 0; i < 10000; i++)
+    {
+        EXPECT_EQUAL(pq.dequeue(), {"", double(i)});
     }
     EXPECT_EQUAL(pq.size(), 0);
     EXPECT(pq.isEmpty());
 }
 
-PROVIDED_TEST("Handles data points with negative weights.") {
+PROVIDED_TEST("Handles data points with negative weights.")
+{
     HeapPQueue pq;
-    for (int i = -10; i < 10; i++) {
-        pq.enqueue({ "" , double(i) });
+    for (int i = -10; i < 10; i++)
+    {
+        pq.enqueue({"", double(i)});
     }
     EXPECT_EQUAL(pq.size(), 20);
-    for (int i = -10; i < 10; i++) {
+    for (int i = -10; i < 10; i++)
+    {
         EXPECT_EQUAL(pq.dequeue().weight, i);
     }
 }
 
-PROVIDED_TEST("Handles many data points with negative weights.") {
+PROVIDED_TEST("Handles many data points with negative weights.")
+{
     HeapPQueue pq;
-    for (int i = -10000; i < 10000; i++) {
-        pq.enqueue({ "" , double(i) });
+    for (int i = -10000; i < 10000; i++)
+    {
+        pq.enqueue({"", double(i)});
     }
     EXPECT_EQUAL(pq.size(), 20000);
-    for (int i = -10000; i < 10000; i++) {
+    for (int i = -10000; i < 10000; i++)
+    {
         EXPECT_EQUAL(pq.dequeue().weight, i);
     }
 }
 
-PROVIDED_TEST("Interleave enqueues and dequeues.") {
+PROVIDED_TEST("Interleave enqueues and dequeues.")
+{
     HeapPQueue pq;
     int n = 100;
-    for (int i = n / 2; i < n; i++) {
+    for (int i = n / 2; i < n; i++)
+    {
         pq.enqueue({"", double(i)});
     }
     EXPECT_EQUAL(pq.size(), n / 2);
-    for (int i = n / 2; i < n; i++) {
+    for (int i = n / 2; i < n; i++)
+    {
         EXPECT_EQUAL(pq.dequeue().weight, i);
     }
     EXPECT_EQUAL(pq.size(), 0);
 
-    for (int i = 0; i < n / 2; i++) {
+    for (int i = 0; i < n / 2; i++)
+    {
         pq.enqueue({"", double(i)});
     }
     EXPECT_EQUAL(pq.size(), n / 2);
-    for (int i = 0; i < n / 2; i++) {
+    for (int i = 0; i < n / 2; i++)
+    {
         EXPECT_EQUAL(pq.dequeue().weight, i);
     }
     EXPECT_EQUAL(pq.size(), 0);
 }
 
-PROVIDED_TEST("Interleave many enqueues and dequeues.") {
+PROVIDED_TEST("Interleave many enqueues and dequeues.")
+{
     HeapPQueue pq;
     int n = 10000;
-    for (int i = n / 2; i < n; i++) {
+    for (int i = n / 2; i < n; i++)
+    {
         pq.enqueue({"", double(i)});
     }
     EXPECT_EQUAL(pq.size(), n / 2);
-    for (int i = n / 2; i < n; i++) {
+    for (int i = n / 2; i < n; i++)
+    {
         EXPECT_EQUAL(pq.dequeue().weight, i);
     }
     EXPECT_EQUAL(pq.size(), 0);
 
-    for (int i = 0; i < n / 2; i++) {
+    for (int i = 0; i < n / 2; i++)
+    {
         pq.enqueue({"", double(i)});
     }
     EXPECT_EQUAL(pq.size(), n / 2);
-    for (int i = 0; i < n / 2; i++) {
+    for (int i = 0; i < n / 2; i++)
+    {
         EXPECT_EQUAL(pq.dequeue().weight, i);
     }
     EXPECT_EQUAL(pq.size(), 0);
 }
 
-PROVIDED_TEST("Stress test: cycle 250,000 elems (should take at most a few seconds)") {
+PROVIDED_TEST("Stress test: cycle 250,000 elems (should take at most a few seconds)")
+{
     HeapPQueue pq;
     int n = 250000;
-    for (int i = 0; i < n; i++) {
-        pq.enqueue({ "", randomReal(0, 100000) });
+    for (int i = 0; i < n; i++)
+    {
+        pq.enqueue({"", randomReal(0, 100000)});
     }
     EXPECT_EQUAL(pq.size(), n);
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         pq.dequeue();
     }
     EXPECT_EQUAL(pq.size(), 0);
     EXPECT_EQUAL(pq.isEmpty(), true);
 
-    for (int i = 0; i < n; i++) {
-        pq.enqueue({ "", randomReal(0, 100000) });
+    for (int i = 0; i < n; i++)
+    {
+        pq.enqueue({"", randomReal(0, 100000)});
     }
     EXPECT_EQUAL(pq.size(), n);
 }

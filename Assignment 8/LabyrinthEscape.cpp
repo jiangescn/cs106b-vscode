@@ -2,49 +2,40 @@
 #include "GUI/SimpleTest.h"
 using namespace std;
 
-/* Change this constant to contain your name (and your partner's name, if you're
- * working in a pair).
+/* 修改这个常量，填入你的姓名（如果是两人合作，还要填入搭档的姓名）。
  *
- * WARNING: Once you've set set this constant and started exploring your maze,
- * do NOT edit the value of MyName. Changing MyName will change which maze you
- * get back, which might invalidate all your hard work!
+ * 警告：设置好这个常量并开始探索迷宫后，请不要再修改 MyName 的值。
+ * 修改 MyName 会改变生成的迷宫，可能让你之前的所有努力全部失效！
  *
- * You might be wondering - why are we using the weird type "const char MyName[]"
- * rather than "const string MyName?" While either is fine, the version we've used
- * here makes a raw array of characters containing your name and thus eliminates
- * a compiler warning message. Come talk to us over EdStem if you'd like to learn
- * more about this!
+ * 你可能会疑惑：为什么这里使用看起来有些奇怪的类型
+ * "const char MyName[]"，而不是 "const string MyName"？两种写法都可以，
+ * 但这里采用的版本会创建一个存放姓名的原始字符数组，从而消除一条编译器
+ * 警告。如果想进一步了解原因，欢迎在 EdStem 上联系我们！
  */
-const char MyName[] = "TODO: Replace this string with your name.";
+const char MyName[] = "Jianges";
 
-/* Change these constants to contain the paths out of your mazes. */
-const char ThePathOutOfMyMaze[] = "TODO: Replace this string with your path out of the normal maze.";
-const char ThePathOutOfMyTwistyMaze[] = "TODO: Replace this string with your path out of the twisty maze.";
+/* 修改这些常量，填入逃出两个迷宫的路径。 */
+const char ThePathOutOfMyMaze[] = "WSSSENSWNNEENSSENNSSWSE";
+const char ThePathOutOfMyTwistyMaze[] = "SWSSWEWWSNEEWEW";
 
 PROVIDED_TEST("Escape from the labyrinth!") {
-    /* A maze for you to escape from. This maze will be personalized
-     * based on the constant MyName.
+    /* 这是一个需要你逃脱的迷宫。迷宫会根据常量 MyName 进行个性化生成。
      *
-     * Do not set a breakpoint on this line. Instead, set it before the
-     * EXPECT statement below.
+     * 不要在这一行设置断点；请把断点设置在下方 EXPECT 语句之前。
      */
     MazeCell* startLocation = mazeFor(MyName);
 
-    /* Set a breakpoint on the next line. As a reminder, the labyrinth you
-     * get will be personalized to you, so don't start exploring the labyrinth
-     * unless you've edited the constant MyName to include your name(s)!
-     * Otherwise, you'll be escaping the wrong labyrinth.
+    /* 在下一行设置断点。再次提醒：生成的迷宫是为你个性化创建的，因此必须先
+     * 修改常量 MyName，填入你们的姓名，然后才能开始探索迷宫！否则，你尝试
+     * 逃脱的会是错误的迷宫。
      *
-     * This is the labyrinth you'll escape from in Milestone Two. The maze
-     * will be in the shape of a regular grid, with pointers pointing in the
-     * directions you expect them to point.
+     * 这是你在里程碑 2 中需要逃脱的迷宫。它采用规则网格的形状，其中的指针
+     * 会指向其标签所表示的正常方向。
      */
     EXPECT(isPathToFreedom(startLocation, ThePathOutOfMyMaze));
 
-    /* We are aware that we didn't free any of the memory allocated in this maze,
-     * causing a memory leak. Since this is purely for educational purposes,
-     * we're going to let that slide, but you should generally not write code
-     * like this.
+    /* 我们知道这里没有释放为迷宫分配的任何内存，因此会造成内存泄漏。
+     * 由于这段代码只用于教学，我们暂时忽略这个问题；但通常不应编写这样的代码。
      */
 }
 
@@ -53,33 +44,27 @@ PROVIDED_TEST("Escape from the labyrinth!") {
 
 
 PROVIDED_TEST("Escape from the twisty labyrinth!") {
-    /* Do not set a breakpoint here; set it at the EXPECT statement. */
+    /* 不要在这里设置断点；请在 EXPECT 语句处设置断点。 */
     MazeCell* startLocation = twistyMazeFor(MyName);
 
-    /* This test case is for Milestone 3.
+    /* 这个测试用例用于里程碑 3。
      *
      *  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
      *  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-     *  >>>> Do not start working on this section until you've read the <<<<
-     *  >>>> instructions for Milestone 3, the one that talks about     <<<<
-     *  >>>> twisty mazes (the ones where the maze is not a regular     <<<<
-     *  >>>> grid of cells. The maze here is structured differently     <<<<
-     *  >>>> the maze in Milestone 2, and escaping it requires a        <<<<
-     *  >>>> different set of skills.                                   <<<<
+     *  >>>> 阅读里程碑 3 中关于扭曲迷宫的说明之前，请不要开始本节。   <<<<
+     *  >>>> 扭曲迷宫并不是由单元格组成的规则网格，其结构与里程碑 2   <<<<
+     *  >>>> 中的迷宫不同，因此逃脱它需要使用另一组技能。             <<<<
      *  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
      *  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
      *
-     * This is the labyrinth you'll escape from in Milestone Three. The
-     * maze is not necessarily a rectangular grid, and the pointers in each
-     * maze cell might not point in the direction they're labeled as pointing.
-     * However, you can rely on the fact that if one MazeCell links to a
-     * second, the second (somehow) links directly back to the first.
+     * 这是你在里程碑 3 中需要逃脱的迷宫。它不一定是矩形网格，而且每个
+     * 迷宫单元格中的指针也不一定指向其标签所表示的方向。不过，可以确定：
+     * 如果一个 MazeCell 连接到另一个 MazeCell，那么后者也会以某种方式
+     * 直接连接回前者。
      */
     EXPECT(isPathToFreedom(startLocation, ThePathOutOfMyTwistyMaze));
 
-    /* We are aware that we didn't free any of the memory allocated in this maze,
-     * causing a memory leak. Since this is purely for educational purposes,
-     * we're going to let that slide, but you should generally not write code
-     * like this.
+    /* 我们知道这里没有释放为迷宫分配的任何内存，因此会造成内存泄漏。
+     * 由于这段代码只用于教学，我们暂时忽略这个问题；但通常不应编写这样的代码。
      */
 }

@@ -6,15 +6,43 @@ using namespace std;
 Grid<bool> floodedRegionsIn(const Grid<double>& terrain,
                             const Vector<GridLocation>& sources,
                             double height) {
-    /* TODO: Delete this line and the next four lines, then implement this function. */
-    (void) terrain;
-    (void) sources;
-    (void) height;
-    return {};
+    /* TODO：删除此行及后四行，然后实现此函数。 */
+    Grid<bool> flooded(terrain.numRows(), terrain.numCols(), false);
+    Grid<bool> vi(terrain.numRows(), terrain.numCols(), false);
+    
+    Queue<GridLocation> q;
+    for (GridLocation point : sources)
+    {
+        if (terrain.inBounds(point) && terrain[point] <= height)
+        {
+            q.enqueue(point);
+            flooded[point] = true;
+        }
+    }
+    
+    while(!q.isEmpty())
+    {
+        GridLocation point = q.dequeue();
+        if(!terrain.inBounds(point) || vi[point])
+        {
+            continue;
+        }
+        vi[point] = true;
+        if(terrain[point] <= height)
+        {
+            flooded[point] = true;
+            q.enqueue({point.row - 1, point.col});
+            q.enqueue({point.row + 1, point.col});
+            q.enqueue({point.row, point.col - 1});
+            q.enqueue({point.row, point.col + 1});
+        }
+    }
+
+    return flooded;
 }
 
 
-/***** Test Cases Below This Point *****/
+/***** 此处以下为测试用例 *****/
 PROVIDED_TEST("Nothing gets wet if there are no water sources.") {
     Grid<double> world = {
         { 0, 0, 0 },
@@ -23,10 +51,10 @@ PROVIDED_TEST("Nothing gets wet if there are no water sources.") {
     };
 
     Vector<GridLocation> sources = {
-        // empty
+        // 空
     };
 
-    /* There are no water sources, so nothing should be underwater. */
+    /* 没有水源，因此任何地方都不应被淹没。 */
     Grid<bool> water = floodedRegionsIn(world, sources, 1.0);
     Grid<bool> expected = {
         { false, false, false },
@@ -48,7 +76,7 @@ PROVIDED_TEST("Everything gets wet if all locations are below the water level.")
         { 0, 0 }
     };
 
-    /* Everything should flood; there are no barriers to stop the water. */
+    /* 所有内容都应被淹没；没有任何屏障阻止水流。 */
     Grid<bool> water = floodedRegionsIn(world, sources, 1.0);
     Grid<bool> expected = {
         {  true,  true,  true },
@@ -70,7 +98,7 @@ PROVIDED_TEST("Water can't cross a vertical levee.") {
         { 0, 0 }
     };
 
-    /* Only locations to the left of the barrier should be under water. */
+    /* 只有屏障左侧的位置应位于水下。 */
     Grid<bool> water = floodedRegionsIn(world, sources, 1.0);
     Grid<bool> expected = {
         {  true, false, false },
@@ -92,8 +120,8 @@ PROVIDED_TEST("Water can't cross a diagonal levee.") {
         { 0, 0 }
     };
 
-    /* Water only flows in the four cardinal directions, so it can't
-     * pass through the barrier. Only the top should be flooded.
+    /* 水只沿四个基本方向流动，因此不能
+     * 穿过屏障。只有顶部应被淹没。
      */
     Grid<bool> water = floodedRegionsIn(world, sources, 1.0);
     Grid<bool> expected = {
@@ -116,8 +144,8 @@ PROVIDED_TEST("Water can't flow diagonally.") {
         { 1, 1 }
     };
 
-    /* Water should be trapped in the center, since it can't move
-     * diagonally.
+    /* 水应被困在中央，因为它无法移动
+     * 沿对角线方向。
      */
     Grid<bool> water = floodedRegionsIn(world, sources, 1.0);
     Grid<bool> expected = {
@@ -140,7 +168,7 @@ PROVIDED_TEST("Water can flow in all cardinal directions.") {
         { 1, 1 }
     };
 
-    /* The water in this case should flow up, down, left, and right. */
+    /* 此时水应向上、下、左、右流动。 */
     Grid<bool> water = floodedRegionsIn(world, sources, 1.0);
     Grid<bool> expected = {
         { false,  true, false },
@@ -163,7 +191,7 @@ PROVIDED_TEST("Water can flow from multiple sources.") {
         { 2, 2 }
     };
 
-    /* Everything except the levee should be under water. */
+    /* 除堤坝外，所有内容都应位于水下。 */
     Grid<bool> water = floodedRegionsIn(world, sources, 1.0);
     Grid<bool> expected = {
         {  true,  true, false },
@@ -181,7 +209,7 @@ PROVIDED_TEST("Handles asymmetric worlds and non-square grids") {
         { 5, 3, 5, 8 }
     };
 
-    /* Initial test - water shouldn't leak out from the 2 if the height is 3.5. */
+    /* 初始测试——如果高度为 3.5，水不应从 2 处漏出。 */
     Vector<GridLocation> sources = {
         { 1, 2 }
     };
@@ -194,7 +222,7 @@ PROVIDED_TEST("Handles asymmetric worlds and non-square grids") {
 
     EXPECT_EQUAL(floodedRegionsIn(world, sources, 3.5), expected);
 
-    /* Now, increase the water height to 4.5. */
+    /* 现在，将水位提高到 4.5。 */
     expected = {
         {  true,  true,  true,  true },
         { false, false,  true, false },
@@ -203,7 +231,7 @@ PROVIDED_TEST("Handles asymmetric worlds and non-square grids") {
 
     EXPECT_EQUAL(floodedRegionsIn(world, sources, 4.5), expected);
 
-    /* Now, increase the water height to 5.5. */
+    /* 现在，将水位提高到 5.5。 */
     expected = {
         {  true,  true,  true,  true },
         {  true, false,  true, false },
@@ -212,7 +240,7 @@ PROVIDED_TEST("Handles asymmetric worlds and non-square grids") {
 
     EXPECT_EQUAL(floodedRegionsIn(world, sources, 5.5), expected);
 
-    /* Now, increase the water height to 6.5. */
+    /* 现在，将水位提高到 6.5。 */
     expected = {
         {  true,  true,  true,  true },
         {  true, false,  true,  true },
@@ -221,7 +249,7 @@ PROVIDED_TEST("Handles asymmetric worlds and non-square grids") {
 
     EXPECT_EQUAL(floodedRegionsIn(world, sources, 6.5), expected);
 
-    /* Now, increase the water height to 9.5. */
+    /* 现在，将水位提高到 9.5。 */
     expected = {
         {  true,  true,  true,  true },
         {  true,  true,  true,  true },
@@ -232,25 +260,25 @@ PROVIDED_TEST("Handles asymmetric worlds and non-square grids") {
 }
 
 PROVIDED_TEST("Stress test: Handles a large, empty world quickly.") {
-    Grid<double> world(100, 100); // Large world, everything defaults to 0 height.
+    Grid<double> world(100, 100); // 大型世界，所有高度默认为 0。
     Vector<GridLocation> sources = {
         { 0, 0 }
     };
 
-    /* This may take a long time to complete if the solution is inefficient. Look
-     * for things like
+    /* 如果解法效率较低，此过程可能需要很长时间。请查看
+     * 用于以下内容，例如
      *
-     * 1. passing around large objects by *value* rather than by *reference*,
-     * 2. revisiting the same squares multiple times (e.g. flooding the same
-     *    cell many times due to not checking if something is flooded),
+     * 1. 通过值而非引用传递大型对象，
+     * 2. 多次重新访问同一方格（例如重复淹没同一
+     *    由于未检查某项是否已被淹没，导致同一单元格多次处理），
      *
-     * etc.
+     * 等等。
      */
     Grid<bool> water = floodedRegionsIn(world, sources, 1.0);
     EXPECT_EQUAL(water.numRows(), world.numRows());
     EXPECT_EQUAL(water.numCols(), world.numCols());
 
-    /* Everything should be flooded. */
+    /* 所有内容都应被淹没。 */
     for (int row = 0; row < world.numRows(); row++) {
         for (int col = 0; col < world.numCols(); col++) {
             EXPECT_EQUAL(water[row][col], true);

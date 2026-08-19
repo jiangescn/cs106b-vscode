@@ -4,12 +4,11 @@
 using namespace std;
 
 void exploreArrays() {
-    /* In this section, you'll see how to use the debugger to read the contents
-     * of arrays in memory and how to recognize when you're trying to read past
-     * the end of an array.
+    /* 本节将演示如何使用调试器查看内存中数组的内容，以及如何判断自己是否
+     * 正在尝试读取数组末尾之外的内存。
      *
-     * Begin by setting a breakpoint on the line of code shown below, then doing
-     * execute the "Step Over" command until you're at the next comment.
+     * 首先在下方所示的代码行设置断点，然后反复执行 "Step Over" 命令，
+     * 直到程序运行到下一段注释处。
      */
     DataPoint* elems = new DataPoint[4] {
         { "What",      1 },
@@ -18,84 +17,68 @@ void exploreArrays() {
         { "world!",    4 },
     };
 
-    /* At this point, you now have a nice array of elements in memory. If you
-     * try using the debugger to read that array, though, you'll probably only
-     * see the first element of that array.
+    /* 此时，内存中已经有了一个包含若干元素的数组。不过，如果尝试使用调试器
+     * 查看这个数组，你很可能只能看到数组的第一个元素。要解决这个问题，
+     * 需要告诉调试器更改 elems 的显示格式。在显示局部变量值的调试窗口中，
+     * 右键单击 "elems"。菜单中应该会出现两组选项：一组标记为
+     * "Change Display for Object Named local.elems"，另一组标记为
+     * "Change Display for Type DataPoint*"。在
+     * "Change Display for Object Named local.elems" 这一组中选择
+     * "Array of 10 items"。完成后，elems 下方应该会出现
+     * 十个可展开的条目。
      *
-     * To fix this, we'll need to tell the debugger to change the display
-     * format for elems. To do so, right-click on "elems" in the debugging
-     * window that shows local variable values. You should see two groups of
-     * options in the menu. One group be marked "Change Display for Object
-     * Named local.elems," and the other will be marked "Change Display for
-     * Type DataPoint*." In the group for "Object Named local.elems," choose
-     * the option "Array of 10 items." When you do, you should see ten drop-
-     * down slots appear underneath elems.
+     * 展开条目 [0]、[1]、[2] 和 [3]，确认你能读取其中的值，并且这些值
+     * 与上方创建数组时写入的内容一致。你应该能看到 data 和 weight 字段。
+     * （你还会看到一个名为 _initializationFlag 的字段。这是本次作业额外
+     * 添加的内容，用于帮助发现内存错误，可以放心忽略。）
      *
-     * Expand out slots [0], [1], [2], and [3] and confirm that you can read
-     * the values there and that they match what was created in the array
-     * above. You should see the data and weight fields. (You'll also see
-     * one called _initializationFlag. This is something extra we added for
-     * this assignment to make it easier to spot memory errors, and you can
-     * safely ignore it.)
-     *
-     * Once you've done that, hit "Step Over" to skip this line of code.
+     * 完成后，按下 "Step Over"，跳过这一行代码。
      */
-    elems[0].weight++; // Just a place for the debugger to rest.
+    elems[0].weight++; // 只是给调试器提供一个暂停的位置。
 
-    /* Now, expand out slots [4], [5], [6], ..., and [9]. These slots aren't
-     * actually a part of the array, and they're essentially garbage values
-     * that appear past the end of the array we allocated up above. Some of
-     * the strings you'll see might be marked <not accessible>, while others
-     * might be empty, or might be random sequences of symbols. The numbers
-     * that you see on the different slots are similarly unpredictable - they
-     * might happen to be all zeros, or they might be completely random values
-     * with no discernable pattern.
+    /* 现在展开条目 [4]、[5]、[6]、……、[9]。这些条目实际上并不属于该数组，
+     * 它们本质上是越过上方所分配数组的末尾后读到的垃圾值。你看到的一些
+     * 字符串可能会被标记为 <not accessible>，另一些可能是空字符串，也可能
+     * 是随机的符号序列。不同条目中的数字同样不可预测：它们可能碰巧全为零，
+     * 也可能是完全随机且没有明显规律的值。
      *
-     * Hit "Step Over" to skip this next line and move on to the next section.
+     * 按下 "Step Over" 跳过下一行，然后继续进入下一部分。
      */
-    elems[0].weight++; // Just a place for the debugger to rest.
+    elems[0].weight++; // 只是给调试器提供一个暂停的位置。
 
-    /* This next section of code allocates space for three DataPoints, but
-     * doesn't initialize them. Hit "Step Over" to set that array up.
+    /* 接下来的代码会为三个 DataPoint 分配空间，但不会显式初始化它们。
+     * 按下 "Step Over" 创建这个数组。
      *
-     * (Yes, we just leaked a bunch of memory. That's not a good thing, but
-     * this is purely for educational purposes and so we don't care. ^_^)
+     * （没错，我们刚刚泄漏了一些内存。这当然不是好事，不过这里只是为了教学，
+     * 所以暂时不用在意。^_^）
      */
     elems = new DataPoint[3];
 
-    /* Now, poke around a bit in the debugger and look at the array contents.
-     * Look at slots [0], [1], and [2] (the valid slots in the array.)
-     * We didn't initialize any of the elements in this array, so C++ does
-     * what it normally does when initializing those elements. In particular,
-     * notice that
+    /* 现在在调试器中查看一下数组的内容。先观察条目 [0]、[1] 和 [2]
+     * （它们是数组中的有效条目）。我们没有显式初始化这个数组中的任何元素，
+     * 因此 C++ 会按照通常的方式初始化这些元素。请特别注意：
      *
-     * 1. the strings have all been set to the empty string, and
-     * 2. the integers are all essentially random.
+     * 1. 所有字符串都被设为空字符串；
+     * 2. 所有整数基本上都是随机值。
      *
-     * Now, move on and look at slots [3], [4], ..., [9]. Notice that the
-     * integers here all look pretty much random as well, but the strings here
-     * are likely to be a mix of empty, <not accessible>, and totally random.
+     * 接着观察条目 [3]、[4]、……、[9]。这里的整数看起来同样几乎都是随机值，
+     * 而字符串则可能混合出现空字符串、<not accessible> 和完全随机的内容。
      *
-     * We wanted you to see this because we want you to understand that seeing
-     * garbage values in memory doesn't necessarily mean that you've walked off
-     * the end of the array. Rather, it likely means that you're seeing some
-     * values in memory that weren't initialized. So don't panic if you see
-     * this when writing code that uses arrays - it doesn't mean that your
-     * pointer is "bad" or something like that. It could very well mean that
-     * you have the space you need, but just forgot to initialize the values
-     * there.
+     * 之所以让你观察这些内容，是为了说明：在内存中看到垃圾值，并不一定意味
+     * 着你已经越过了数组末尾。更可能的情况是，你正在查看尚未初始化的内存值。
+     * 因此，在编写使用数组的代码时看到这种现象不必惊慌；这并不表示指针已经
+     * “损坏”之类的。你可能已经拥有所需的内存空间，只是忘记初始化其中的值。
      */
-    elems[0].weight = 137; // Ah, give a nice value.
+    elems[0].weight = 137; // 好，给它设置一个明确的值。
 
-    /* To wrap up this section, edit res/ShortAnswers.txt with your answers
-     * to the following questions:
+    /* 最后，请编辑 res/ShortAnswers.txt，写下以下问题的答案：
      *
-     * Q1: What operating system are you using? (Windows, macOS, Linux, etc.)
+     * Q1：你使用的是什么操作系统？（Windows、macOS、Linux 等。）
      *
-     * Q2: What are the values you see in elems[3], elems[4], and elems[5]? If
-     *     you see garbage strings that run for long periods of time, just give
-     *     us the first few characters, or your best approximation of them. :-)
+     * Q2：你在 elems[3]、elems[4] 和 elems[5] 中看到了哪些值？如果看到
+     *     很长的垃圾字符串，只需写出前几个字符，或者给出你能做出的最佳近似。
+     *     :-)
      *
      */
-    elems[1].weight = 137; // Just another place for the debugger to chill.
+    elems[1].weight = 137; // 另一个供调试器暂停的位置。
 }

@@ -95,7 +95,8 @@ private:
      *
      * TODO: Delete this comment before submitting.
      */
-
+    HashFunction<std::string> hashFn;
+    int logicalSize = 0;
 
 
 

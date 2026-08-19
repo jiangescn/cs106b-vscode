@@ -1,0 +1,1 @@
+{"name":"Local: a","url":"e:\\cs106b-vscode\\Assignment 6\\a.c","tests":[{"id":1786948097794,"input":"5 4\n张大明 120 142 120 256\n李小红 110 107 106 280\n王志强 108 100 127 290\n王慧颖 115 138 119 270\n李丹 134 129 115 284","output":""}],"interactive":false,"memoryLimit":1024,"timeLimit":3000,"srcPath":"e:\\cs106b-vscode\\Assignment 6\\a.c","group":"local","local":true}

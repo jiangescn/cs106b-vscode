@@ -4,16 +4,72 @@ using namespace std;
 /* TODO: Refer to DisasterPlanning.h for more information about this function.
  * Then, delete this comment.
  */
-bool canBeMadeDisasterReady(const Map<string, Set<string>>& roadNetwork,
+bool canBeMadeDisasterReady(const Map<string, Set<string>> &roadNetwork,
                             int numCities,
-                            Set<string>& supplyLocations) {
+                            Set<string> &supplyLocations)
+{
     /* TODO: Delete the next few lines and implement this function. */
-    (void) roadNetwork;
-    (void) numCities;
-    (void) supplyLocations;
+    // (void) roadNetwork;
+    // (void) numCities;
+    // (void) supplyLocations;
+    // return false;
+    if(numCities < 0)
+    {
+        error("Number of cities cannot be negative");
+    }
+
+    string uncoveredCity = "";
+
+    for (string city : roadNetwork)
+    {
+        bool covered = false;
+        if(supplyLocations.contains(city))
+        {
+            covered = true;
+        }
+
+        for (string neighbor : roadNetwork[city])
+        {
+            if(supplyLocations.contains(neighbor))
+            {
+                covered = true;
+                break;
+            }
+        }
+
+        if(!covered)
+        {
+            uncoveredCity = city;
+            break;
+        }
+    }
+
+    if(uncoveredCity == "")
+    {
+        return true;
+    }
+
+    if(numCities == 0)
+    {
+        return false;
+    }
+
+    Set<string> choice = roadNetwork[uncoveredCity];
+    choice.add(uncoveredCity);
+
+    for (string city : choice)
+    {
+        supplyLocations.add(city);
+
+        if(canBeMadeDisasterReady(roadNetwork, numCities - 1, supplyLocations))
+        {
+            return true;
+        }
+
+        supplyLocations.remove(city);
+    }
     return false;
 }
-
 
 /* * * * * * * Test Helper Functions Below This Point * * * * * */
 #include "GUI/SimpleTest.h"
@@ -24,11 +80,14 @@ bool canBeMadeDisasterReady(const Map<string, Set<string>>& roadNetwork,
  * function when writing tests, though you won't need it in your implementation of the main
  * canBeMadeDisasterReady function.
  */
-Map<string, Set<string>> makeSymmetric(const Map<string, Set<string>>& source) {
+Map<string, Set<string>> makeSymmetric(const Map<string, Set<string>> &source)
+{
     Map<string, Set<string>> result = source;
 
-    for (const string& from: source) {
-        for (const string& to: source[from]) {
+    for (const string &from : source)
+    {
+        for (const string &to : source[from])
+        {
             result[from] += to;
             result[to] += from;
         }
@@ -40,13 +99,17 @@ Map<string, Set<string>> makeSymmetric(const Map<string, Set<string>>& source) {
 /* This helper function tests whether a city has been covered by a set of supply locations
  * and is used by our testing code. You're welcome to use it in your tests as well!
  */
-bool isCovered(const string& city,
-               const Map<string, Set<string>>& roadNetwork,
-               const Set<string>& supplyLocations) {
-    if (supplyLocations.contains(city)) return true;
+bool isCovered(const string &city,
+               const Map<string, Set<string>> &roadNetwork,
+               const Set<string> &supplyLocations)
+{
+    if (supplyLocations.contains(city))
+        return true;
 
-    for (string neighbor: roadNetwork[city]) {
-        if (supplyLocations.contains(neighbor)) return true;
+    for (string neighbor : roadNetwork[city])
+    {
+        if (supplyLocations.contains(neighbor))
+            return true;
     }
 
     return false;
@@ -56,27 +119,16 @@ bool isCovered(const string& city,
 
 /* TODO: Add your own custom tests here! */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* * * * * Provided Tests Below This Point * * * * */
 
-PROVIDED_TEST("Reports an error if numCities < 0") {
+PROVIDED_TEST("Reports an error if numCities < 0")
+{
     Set<string> supply;
     EXPECT_ERROR(canBeMadeDisasterReady({}, -137, supply));
 }
 
-PROVIDED_TEST("Works for map with no cities.") {
+PROVIDED_TEST("Works for map with no cities.")
+{
     Set<string> locations;
 
     /* The number of cities we use really doesn't matter here. */
@@ -87,22 +139,20 @@ PROVIDED_TEST("Works for map with no cities.") {
     EXPECT_EQUAL(locations.size(), 0);
 }
 
-PROVIDED_TEST("Works for map with one city.") {
-    Map<string, Set<string>> map = makeSymmetric({
-         { "Solipsist", {} }
-    });
+PROVIDED_TEST("Works for map with one city.")
+{
+    Map<string, Set<string>> map = makeSymmetric({{"Solipsist", {}}});
 
     /* Shouldn't matter how many cities we use, as long as it isn't zero! */
     Set<string> locations0, locations1, locations2;
     EXPECT(!canBeMadeDisasterReady(map, 0, locations0));
-    EXPECT( canBeMadeDisasterReady(map, 1, locations1));
-    EXPECT( canBeMadeDisasterReady(map, 2, locations2));
+    EXPECT(canBeMadeDisasterReady(map, 1, locations1));
+    EXPECT(canBeMadeDisasterReady(map, 2, locations2));
 }
 
-PROVIDED_TEST("Works for map with one city, and produces output.") {
-    Map<string, Set<string>> map = makeSymmetric({
-         { "Solipsist", {} }
-    });
+PROVIDED_TEST("Works for map with one city, and produces output.")
+{
+    Map<string, Set<string>> map = makeSymmetric({{"Solipsist", {}}});
 
     Set<string> locations0, locations1, locations2;
     EXPECT(!canBeMadeDisasterReady(map, 0, locations0));
@@ -112,16 +162,15 @@ PROVIDED_TEST("Works for map with one city, and produces output.") {
     /* Don't check locations0; since the function returned false, the values there
      * can be anything.
      */
-    Set<string> expected = { "Solipsist" };
+    Set<string> expected = {"Solipsist"};
     EXPECT_EQUAL(locations1, expected);
     EXPECT_EQUAL(locations2, expected);
 }
 
-PROVIDED_TEST("Works for map with two linked cities.") {
-    Map<string, Set<string>> map = makeSymmetric({
-         { "A", { "B" } },
-         { "B", {     } }
-    });
+PROVIDED_TEST("Works for map with two linked cities.")
+{
+    Map<string, Set<string>> map = makeSymmetric({{"A", {"B"}},
+                                                  {"B", {}}});
 
     Set<string> locations0, locations1, locations2;
     EXPECT(!canBeMadeDisasterReady(map, 0, locations0));
@@ -129,9 +178,10 @@ PROVIDED_TEST("Works for map with two linked cities.") {
     EXPECT(canBeMadeDisasterReady(map, 2, locations2));
 }
 
-PROVIDED_TEST("Works for map with two linked cities, and produces output.") {
+PROVIDED_TEST("Works for map with two linked cities, and produces output.")
+{
     Map<string, Set<string>> map = makeSymmetric({
-         { "A", { "B" } },
+        {"A", {"B"}},
     });
 
     Set<string> locations0, locations1, locations2;
@@ -146,13 +196,12 @@ PROVIDED_TEST("Works for map with two linked cities, and produces output.") {
     EXPECT(locations2.isSubsetOf({"A", "B"}));
 }
 
-PROVIDED_TEST("Works for four disconnected cities.") {
-    Map<string, Set<string>> map = makeSymmetric({
-        { "A", { } },
-        { "B", { } },
-        { "C", { } },
-        { "D", { } }
-    });
+PROVIDED_TEST("Works for four disconnected cities.")
+{
+    Map<string, Set<string>> map = makeSymmetric({{"A", {}},
+                                                  {"B", {}},
+                                                  {"C", {}},
+                                                  {"D", {}}});
 
     Set<string> locations0, locations1, locations2, locations3, locations4;
     EXPECT(!canBeMadeDisasterReady(map, 0, locations0));
@@ -162,13 +211,12 @@ PROVIDED_TEST("Works for four disconnected cities.") {
     EXPECT(canBeMadeDisasterReady(map, 4, locations4));
 }
 
-PROVIDED_TEST("Works for four disconnected cities, and produces output.") {
-    Map<string, Set<string>> map = makeSymmetric({
-        { "A", { } },
-        { "B", { } },
-        { "C", { } },
-        { "D", { } }
-    });
+PROVIDED_TEST("Works for four disconnected cities, and produces output.")
+{
+    Map<string, Set<string>> map = makeSymmetric({{"A", {}},
+                                                  {"B", {}},
+                                                  {"C", {}},
+                                                  {"D", {}}});
 
     Set<string> locations0, locations1, locations2, locations3, locations4;
     EXPECT(!canBeMadeDisasterReady(map, 0, locations0));
@@ -177,11 +225,12 @@ PROVIDED_TEST("Works for four disconnected cities, and produces output.") {
     EXPECT(!canBeMadeDisasterReady(map, 3, locations3));
     EXPECT(canBeMadeDisasterReady(map, 4, locations4));
 
-    Set<string> expected = { "A", "B", "C", "D" };
+    Set<string> expected = {"A", "B", "C", "D"};
     EXPECT_EQUAL(locations4, expected);
 }
 
-PROVIDED_TEST("Can solve ethene example, regardless of ordering.") {
+PROVIDED_TEST("Can solve ethene example, regardless of ordering.")
+{
     /* Because Map and Set internally store items in sorted order, the order
      * in which you iterate over the cities when making decisions is sensitive
      * to the order of those cities' names. This test looks at a map like
@@ -201,18 +250,17 @@ PROVIDED_TEST("Can solve ethene example, regardless of ordering.") {
      * you're covering and uncovering cities accidentally uncovers a city that
      * you have previously covered.
      */
-    Vector<string> cities = { "A", "B", "C", "D", "E", "F" };
-    do {
+    Vector<string> cities = {"A", "B", "C", "D", "E", "F"};
+    do
+    {
         /* Ethene arrangement:
          *
          *        0
          *       1234
          *         5
          */
-        Map<string, Set<string>> map = makeSymmetric({
-            { cities[2], { cities[0], cities[1], cities[3] } },
-            { cities[3], { cities[4], cities[5] } }
-        });
+        Map<string, Set<string>> map = makeSymmetric({{cities[2], {cities[0], cities[1], cities[3]}},
+                                                      {cities[3], {cities[4], cities[5]}}});
 
         /* We should be able to cover everything with two cities:
          * city 2 and city 3.
@@ -226,7 +274,8 @@ PROVIDED_TEST("Can solve ethene example, regardless of ordering.") {
     } while (next_permutation(cities.begin(), cities.end()));
 }
 
-PROVIDED_TEST("Can solve ethene example, regardless of ordering, and produces output.") {
+PROVIDED_TEST("Can solve ethene example, regardless of ordering, and produces output.")
+{
     /* Because Map and Set internally store items in sorted order, the order
      * in which you iterate over the cities when making decisions is sensitive
      * to the order of those cities' names. This test looks at a map like
@@ -246,18 +295,17 @@ PROVIDED_TEST("Can solve ethene example, regardless of ordering, and produces ou
      * you're covering and uncovering cities accidentally uncovers a city that
      * you have previously covered.
      */
-    Vector<string> cities = { "A", "B", "C", "D", "E", "F" };
-    do {
+    Vector<string> cities = {"A", "B", "C", "D", "E", "F"};
+    do
+    {
         /* Ethene arrangement:
          *
          *        0
          *       1234
          *         5
          */
-        Map<string, Set<string>> map = makeSymmetric({
-            { cities[2], { cities[0], cities[1], cities[3] } },
-            { cities[3], { cities[4], cities[5] } }
-        });
+        Map<string, Set<string>> map = makeSymmetric({{cities[2], {cities[0], cities[1], cities[3]}},
+                                                      {cities[3], {cities[4], cities[5]}}});
 
         /* We should be able to cover everything with two cities:
          * city 2 and city 3.
@@ -275,7 +323,8 @@ PROVIDED_TEST("Can solve ethene example, regardless of ordering, and produces ou
     } while (next_permutation(cities.begin(), cities.end()));
 }
 
-PROVIDED_TEST("Works for six cities in a line, regardless of order.") {
+PROVIDED_TEST("Works for six cities in a line, regardless of order.")
+{
     /* Because Map and Set internally store items in sorted order, the order
      * in which you iterate over the cities when making decisions is sensitive
      * to the order of those cities' names. This test looks at a map like
@@ -291,12 +340,14 @@ PROVIDED_TEST("Works for six cities in a line, regardless of order.") {
      * you're covering and uncovering cities accidentally uncovers a city that
      * you have previously covered.
      */
-    Vector<string> cities = { "A", "B", "C", "D", "E", "F" };
-    do {
+    Vector<string> cities = {"A", "B", "C", "D", "E", "F"};
+    do
+    {
         /* Linear arrangement. */
         Map<string, Set<string>> map;
-        for (int i = 1; i + 1 < cities.size(); i++) {
-            map[cities[i]] = { cities[i - 1], cities[i + 1] };
+        for (int i = 1; i + 1 < cities.size(); i++)
+        {
+            map[cities[i]] = {cities[i - 1], cities[i + 1]};
         }
 
         map = makeSymmetric(map);
@@ -313,7 +364,8 @@ PROVIDED_TEST("Works for six cities in a line, regardless of order.") {
     } while (next_permutation(cities.begin(), cities.end()));
 }
 
-PROVIDED_TEST("Works for six cities in a line, regardless of order, and produces output.") {
+PROVIDED_TEST("Works for six cities in a line, regardless of order, and produces output.")
+{
     /* Because Map and Set internally store items in sorted order, the order
      * in which you iterate over the cities when making decisions is sensitive
      * to the order of those cities' names. This test looks at a map like
@@ -329,12 +381,14 @@ PROVIDED_TEST("Works for six cities in a line, regardless of order, and produces
      * you're covering and uncovering cities accidentally uncovers a city that
      * you have previously covered.
      */
-    Vector<string> cities = { "A", "B", "C", "D", "E", "F" };
-    do {
+    Vector<string> cities = {"A", "B", "C", "D", "E", "F"};
+    do
+    {
         /* Linear arrangement. */
         Map<string, Set<string>> map;
-        for (int i = 1; i + 1 < cities.size(); i++) {
-            map[cities[i]] = { cities[i - 1], cities[i + 1] };
+        for (int i = 1; i + 1 < cities.size(); i++)
+        {
+            map[cities[i]] = {cities[i - 1], cities[i + 1]};
         }
 
         map = makeSymmetric(map);
@@ -357,32 +411,35 @@ PROVIDED_TEST("Works for six cities in a line, regardless of order, and produces
 
 /* The "Don't Be Greedy" sample world. */
 const Map<string, Set<string>> kDontBeGreedy = makeSymmetric({
-    { "A", { "B" } },
-    { "B", { "C", "D" } },
-    { "C", { "D" } },
-    { "D", { "F", "G" } },
-    { "E", { "F" } },
-    { "F", { "G" } },
+    {"A", {"B"}},
+    {"B", {"C", "D"}},
+    {"C", {"D"}},
+    {"D", {"F", "G"}},
+    {"E", {"F"}},
+    {"F", {"G"}},
 });
 
-PROVIDED_TEST("Solves \"Don't be Greedy\" from the handout.") {
+PROVIDED_TEST("Solves \"Don't be Greedy\" from the handout.")
+{
     Set<string> locations0, locations1, locations2;
     EXPECT(!canBeMadeDisasterReady(kDontBeGreedy, 0, locations0));
     EXPECT(!canBeMadeDisasterReady(kDontBeGreedy, 1, locations1));
-    EXPECT( canBeMadeDisasterReady(kDontBeGreedy, 2, locations2));
+    EXPECT(canBeMadeDisasterReady(kDontBeGreedy, 2, locations2));
 }
 
-PROVIDED_TEST("Solves \"Don't be Greedy\" from the handout, and produces output.") {
+PROVIDED_TEST("Solves \"Don't be Greedy\" from the handout, and produces output.")
+{
     Set<string> locations0, locations1, locations2;
     EXPECT(!canBeMadeDisasterReady(kDontBeGreedy, 0, locations0));
     EXPECT(!canBeMadeDisasterReady(kDontBeGreedy, 1, locations1));
-    EXPECT( canBeMadeDisasterReady(kDontBeGreedy, 2, locations2));
+    EXPECT(canBeMadeDisasterReady(kDontBeGreedy, 2, locations2));
 
     Set<string> expected = {"B", "F"};
     EXPECT_EQUAL(locations2, expected);
 }
 
-PROVIDED_TEST("Solves \"Don't be Greedy,\" regardless of ordering, and produces output.") {
+PROVIDED_TEST("Solves \"Don't be Greedy,\" regardless of ordering, and produces output.")
+{
     /* Because Map and Set internally store items in sorted order, the order
      * in which you iterate over the cities when making decisions is sensitive
      * to the order of those cities' names. This test looks at a map like
@@ -402,12 +459,13 @@ PROVIDED_TEST("Solves \"Don't be Greedy,\" regardless of ordering, and produces 
      * you're covering and uncovering cities accidentally uncovers a city that
      * you have previously covered.
      */
-    Vector<string> cities = { "A", "B", "C", "D", "E", "F", "G" };
-    do {
+    Vector<string> cities = {"A", "B", "C", "D", "E", "F", "G"};
+    do
+    {
         Map<string, Set<string>> map = makeSymmetric({
-            { cities[1], { cities[0], cities[2], cities[5] } },
-            { cities[2], { cities[3], cities[5], cities[6] } },
-            { cities[3], { cities[4], cities[6] } },
+            {cities[1], {cities[0], cities[2], cities[5]}},
+            {cities[2], {cities[3], cities[5], cities[6]}},
+            {cities[3], {cities[4], cities[6]}},
         });
 
         /* We should be able to cover everything with two cities. */
@@ -415,7 +473,7 @@ PROVIDED_TEST("Solves \"Don't be Greedy,\" regardless of ordering, and produces 
         EXPECT(canBeMadeDisasterReady(map, 2, chosen));
 
         /* Those cities should be 1 and 3. */
-        EXPECT_EQUAL(chosen, { cities[1], cities[3] });
+        EXPECT_EQUAL(chosen, {cities[1], cities[3]});
 
         /* We should not be able to cover everything with one city. */
         chosen.clear();
@@ -423,18 +481,23 @@ PROVIDED_TEST("Solves \"Don't be Greedy,\" regardless of ordering, and produces 
     } while (next_permutation(cities.begin(), cities.end()));
 }
 
-PROVIDED_TEST("Stress test: 6 x 6 grid. (This should take at most a few seconds.)") {
+PROVIDED_TEST("Stress test: 6 x 6 grid. (This should take at most a few seconds.)")
+{
     Map<string, Set<string>> grid;
 
     /* Build the grid. */
     char maxRow = 'F';
-    int  maxCol = 6;
-    for (char row = 'A'; row <= maxRow; row++) {
-        for (int col = 1; col <= maxCol; col++) {
-            if (row != maxRow) {
+    int maxCol = 6;
+    for (char row = 'A'; row <= maxRow; row++)
+    {
+        for (int col = 1; col <= maxCol; col++)
+        {
+            if (row != maxRow)
+            {
                 grid[row + to_string(col)] += (char(row + 1) + to_string(col));
             }
-            if (col != maxCol) {
+            if (col != maxCol)
+            {
                 grid[row + to_string(col)] += (char(row) + to_string(col + 1));
             }
         }
@@ -445,18 +508,23 @@ PROVIDED_TEST("Stress test: 6 x 6 grid. (This should take at most a few seconds.
     EXPECT(canBeMadeDisasterReady(grid, 10, locations));
 }
 
-PROVIDED_TEST("Stress test: 6 x 6 grid, with output. (This should take at most a few seconds.)") {
+PROVIDED_TEST("Stress test: 6 x 6 grid, with output. (This should take at most a few seconds.)")
+{
     Map<string, Set<string>> grid;
 
     /* Build the grid. */
     char maxRow = 'F';
-    int  maxCol = 6;
-    for (char row = 'A'; row <= maxRow; row++) {
-        for (int col = 1; col <= maxCol; col++) {
-            if (row != maxRow) {
+    int maxCol = 6;
+    for (char row = 'A'; row <= maxRow; row++)
+    {
+        for (int col = 1; col <= maxCol; col++)
+        {
+            if (row != maxRow)
+            {
                 grid[row + to_string(col)] += (char(row + 1) + to_string(col));
             }
-            if (col != maxCol) {
+            if (col != maxCol)
+            {
                 grid[row + to_string(col)] += (char(row) + to_string(col + 1));
             }
         }
@@ -466,10 +534,11 @@ PROVIDED_TEST("Stress test: 6 x 6 grid, with output. (This should take at most a
     Set<string> locations;
     EXPECT(canBeMadeDisasterReady(grid, 10, locations));
 
-    for (char row = 'A'; row <= maxRow; row++) {
-        for (int col = 1; col <= maxCol; col++) {
+    for (char row = 'A'; row <= maxRow; row++)
+    {
+        for (int col = 1; col <= maxCol; col++)
+        {
             EXPECT(isCovered(row + to_string(col), grid, locations));
         }
     }
 }
-

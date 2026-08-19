@@ -5,9 +5,47 @@ bool isPathToFreedom(MazeCell* start, const string& moves) {
     /* TODO: Delete this comment and the next few lines, then implement
      * this function.
      */
-    (void) start;
-    (void) moves;
-    return false;
+    // (void) start;
+    // (void) moves;
+    // return false;
+    bool SpellBook = false;
+    bool Potion = false;
+    bool Wand = false;
+
+    MazeCell* curr = start;
+
+    switch(curr->whatsHere)
+    {
+        case Item::POTION: Potion = true; break;
+        case Item::SPELLBOOK: SpellBook = true; break;
+        case Item::WAND: Wand = true; break;
+        default : break;
+    }
+
+    for (char direction : moves)
+    {
+        MazeCell* next = nullptr;
+        switch(direction)
+        {
+            case 'N': next = curr->north; break;
+            case 'S': next = curr->south; break;
+            case 'E': next = curr->east; break;
+            case 'W': next = curr->west; break;
+        }
+
+        if (next == nullptr) return false;
+        curr = next;
+
+        switch(curr->whatsHere)
+        {
+            case Item::POTION: Potion = true; break;
+            case Item::SPELLBOOK: SpellBook = true; break;
+            case Item::WAND: Wand = true; break;
+            default : break;
+        }
+    }
+
+    return SpellBook && Potion && Wand;
 }
 
 
