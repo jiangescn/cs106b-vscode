@@ -9,12 +9,17 @@
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
+      "environment": [
+        {
+          "name": "PATH",
+          "value": "${workspaceFolder}/../toolchain/Qt/6.11.1/mingw_64/bin;${workspaceFolder}/../toolchain/mingw1310_64/bin;${env:PATH}"
+        }
+      ],
       "externalConsole": true,
       "MIMode": "gdb",
+      "miDebuggerPath": "${workspaceFolder}/../toolchain/mingw1310_64/bin/gdb.exe",
       "preLaunchTask": "构建（Debug / Ninja）",
-      "avoidWindowsConsoleRedirection": true,
-      "miDebuggerPath": "C:/Qt/Tools/mingw1310_64/bin/gdb.exe",
-      "envFile": "${workspaceFolder}/out/build/debug-ninja/cs106b-debug.env"
+      "avoidWindowsConsoleRedirection": true
     }
   ]
 }

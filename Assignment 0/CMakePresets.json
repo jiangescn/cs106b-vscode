@@ -9,7 +9,9 @@
       "inherits": "cs106-base",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "cacheVariables": {}
+      "cacheVariables": {
+        "CMAKE_MAKE_PROGRAM": "${sourceDir}/../toolchain/Ninja/ninja.exe"
+      }
     }
   ],
   "buildPresets": [

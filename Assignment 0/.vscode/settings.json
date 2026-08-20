@@ -1,12 +1,12 @@
 {
-  "cmake.cmakePath": "C:/Qt/Tools/CMake_64/bin/cmake.exe",
+  "cmake.cmakePath": "${workspaceFolder}/../toolchain/CMake_64/bin/cmake.exe",
   "cmake.useCMakePresets": "always",
   "cmake.configurePreset": "debug-ninja",
   "cmake.buildPreset": "debug-ninja",
   "C_Cpp.default.compileCommands": "${workspaceFolder}/out/build/debug-ninja/compile_commands.json",
+  "C_Cpp.default.compilerPath": "${workspaceFolder}/../toolchain/mingw1310_64/bin/g++.exe",
   "C_Cpp.default.includePath": [
     "${workspaceFolder}",
-    "${env:LOCALAPPDATA}/cs106/include",
-    "${env:CS106B_ROOT}/include"
+    "${workspaceFolder}/../toolchain/cs106/include"
   ]
 }
